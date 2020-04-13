@@ -11,6 +11,10 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+router.get('/viewvirtual', ensureAuthenticated, (req, res) =>
+    res.render('viewvirtuallisting', {
+    }));
+
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype } = req.body;
