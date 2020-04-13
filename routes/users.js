@@ -9,7 +9,7 @@ router.get('/login', (req, res) => res.render('login'));
 // Register
 router.get('/register', (req, res) => res.render('register'));
 
-// Register Handler
+// Register handler
 router.post('/register', (req, res) => {
     const { firstName, lastName, userName, email, phone, password, password2 } = req.body;
     let errors = [];
@@ -62,12 +62,11 @@ router.post('/register', (req, res) => {
                 } else {
                     const statements = ["INSERT INTO \"User\" (\"firstName\", \"lastName\", \"userName\", email, phone, password) VALUES (", "\'" + firstName + "\', ", "\'" + lastName + "\', ", "\'" + userName + "\', ", "\'" + email + "\', ", "\'" + phone + "\', ", "\'" + password + "\');"];
                     const query = statements.join('');
-                    console.log(query);
                     pool.query(query, (err, results) => {
                         if (err) {
                             throw err;
                         }
-                        req.flash('success_msg', 'Thank you for registered! You may now login.');
+                        req.flash('success_msg', 'Thank you for registering! You may now login.');
                         res.redirect('/users/login')
                     });
                 }
