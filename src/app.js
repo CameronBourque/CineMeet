@@ -3,6 +3,8 @@ const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
+const cron = require('node-cron');
+const { sendSMS } = require ('../twilio/outbound');
 
 /*
     User account authentication system was created referencing
@@ -52,4 +54,10 @@ app.use('/listings', require('../routes/listings'))
 const port = process.env.PORT || 5000;
 
 app.listen(port, console.log(`Server started on port ${port}`));
+
+sendSMS();
+
+// cron.schedule("* * * * *", () => {
+//     console.log(`this message logs every minute`);
+// });
 
