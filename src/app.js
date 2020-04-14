@@ -3,12 +3,25 @@ const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
-const { sendSMS } = require ('../twilio/outbound');
+const cron = require('node-cron');
+const { initiateTwilioService } = require ('../twilio/outbound');
+
+/*
+    API Configurations
+*/
+
+const TWILIO_SERVICE = false;
 
 /*
     User account authentication system was created referencing
     Traversy Media's youtube tutorial.
 */
+
+/*
+    Server Configurations
+*/
+
+const PORT = 5000;
 
 const app = express();
 
@@ -50,13 +63,13 @@ app.use('/', require('../routes/index'));
 app.use('/users', require('../routes/users'))
 app.use('/listings', require('../routes/listings'))
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || PORT;
 
 app.listen(port, console.log(`Server started on port ${port}`));
 
-sendSMS();
-
-// cron.schedule("* * * * *", () => {
-//     console.log(`this message logs every minute`);
-// });
+if (TWILIO_SERVICE) {
+    cron.schedule("0 0 0 * * *", () => {
+        initiateTwilioService();
+    });
+}
 
