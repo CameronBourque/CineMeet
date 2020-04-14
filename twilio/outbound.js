@@ -1,5 +1,7 @@
 const twilio = require('twilio');
 const { pool } = require('../config/database');
+const cron = require('node-cron');
+
 
 const accountSid = 'ACc321d59a66a91fed5bb3b60ee09d113b';
 const authToken = '8d199a2d4c0eaa8297b961eff8b445b6';
@@ -24,7 +26,7 @@ const identifyUserPhoneNumbers = () => {
                 }
             }
         }
-    );
+    )
 }
 
 const identifyUserListings = () => {
@@ -50,7 +52,6 @@ const identifyUserListings = () => {
 const sendSMS = () => {
     identifyUserPhoneNumbers();
     identifyUserListings();
-    console.log(userPhoneNumbers.get('akshaypatel'));
 }
 
 exports.sendSMS = sendSMS;

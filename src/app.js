@@ -3,7 +3,6 @@ const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
-const cron = require('node-cron');
 const { sendSMS } = require ('../twilio/outbound');
 
 /*

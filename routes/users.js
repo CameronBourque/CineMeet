@@ -2,12 +2,18 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const { pool } = require('../config/database');
+const { ensureAuthenticated } = require('../config/auth');
 
 // Login
 router.get('/login', (req, res) => res.render('login'));
 
 // Register
 router.get('/register', (req, res) => res.render('register'));
+
+// Friends
+router.get('/friends', ensureAuthenticated, (req, res) =>
+    res.render('friendslist', {
+    }));
 
 // Register handler
 router.post('/register', (req, res) => {
