@@ -1,1 +1,63 @@
-//TODO
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<input type="text" id="newfriend" placeholder="Add Friend" />
+	<button type="submit" id="submit">Submit</button>
+	<p id="para">Test For Buttons</p>
+</body>
+</html>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+
+//Initial Friends list from https://gist.github.com/sam-david/404332d2f01716019398
+
+//Hardcoded names, in future will need to update this based of current friends   
+var friends = ['Hannah', 'Akshay', 'Suran', 'Cameron', 'Luke'];
+function createList() {
+	var list = "<ul style='list-style-type:none'; id='list'>"
+
+	//<li> info </li> adds the needed structure to the list
+	//CHANGE "changeColor" TO THE CORRECT FUNCTION LATER
+	
+	for(i=0; i < friends.length; i++) {
+		var x;
+		if(i % 2 == 0)
+			x = '<li>' + '<button onclick = "changeColor(0);" >' + friends[i] + '</button>' + '</li>';
+		else
+			x = '<li>' + '<button onclick = "changeColor(1);" >' + friends[i] + '</button>' + '</li>';
+		//x = '<li>' + '<button onclick = "changeColor(#ff0000);" >' + friends[i] + '</button>' + '</li>'	
+		list = list + x;
+		console.log(list);
+	}
+
+	list = list + '</ul>'
+	console.log(list);
+	// Use jQuery to select the body tag on the index and append the finish table string
+	$("body").append(list);
+}
+
+//initial function from https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
+function changeColor(newColor) {
+  var elem = document.getElementById('para');
+  if(newColor == 0)
+	elem.style.color = "red";
+  else
+	elem.style.color = "blue";
+}
+function addFriend() {
+	friends.push(newFriend);
+}
+
+$("#submit").on('click', function() {
+	newFriend = $("#newfriend").val();
+	addFriend(newFriend);
+	if(friends.length % 2 ==0)
+		$("#list").append("<li>" + '<button onclick = "changeColor(1);" >' + newFriend + '</button>' + "</li>");
+	else
+		$("#list").append("<li>" + '<button onclick = "changeColor(0);" >' + newFriend + '</button>' + "</li>");
+})
+
+createList();
+</script>
