@@ -1,3 +1,4 @@
+const moment = require('moment');
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
@@ -11,9 +12,28 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
-router.get('/viewvirtual', ensureAuthenticated, (req, res) =>
-    res.render('viewvirtuallisting', {
-    }));
+router.get('/viewvirtual', ensureAuthenticated, function(req, res){
+    const today = moment().format('YYYY-MM-DD');
+    const currtime = moment().format('hh:mm');
+    console.log("Date: " + today + " " + currtime);
+
+    const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const qry = statements.join('');
+
+    pool.query(qry, (err, results) => {
+        if (err) {
+            throw err;
+        }
+
+        if(results === null){
+            let rsp = {length: 0};
+            res.render('viewvirtuallisting', {listings: res});
+        }
+        else{
+            let rsp = results.rows;
+            res.render('viewvirtuallisting', {listings: rsp});
+        }
+    });});
 
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {

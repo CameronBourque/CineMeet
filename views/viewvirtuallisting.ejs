@@ -1,0 +1,25 @@
+<h1 class="mt-4">CineMeet</h1>
+<p class="lead mb-3">Virtual movie meetup listings.</p>
+<div class="row mt-5">
+    <div class="col-md-10 m-auto">
+        <% if(listings.length > 0){ for(let i = 0; i < listings.length; i++) { %>
+            <div class="card card-body">
+                <h1><%= listings[i].listingName %> </h1>
+                <h2>Movie: <%= listings[i].movieName %></h2>
+                <p>Date: <%= listings[i].date%> Time: <%= listings[i].time%></p>
+                <p>Creator: <%= listings[i].owner %></p>
+                <%if(listings[i].type == 'physical'){ %>
+                    <p>Venue: <%= listings[i].venueName %></p>
+                    <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
+                <% } else{ %>
+                    <p>Streaming Service: <%= listings[i].service %></p>
+                <% } %>
+                <p>Status: <%= listings[i].status %></p>
+            </div>
+        <% }} else{ %>
+            <div class="card card-body">
+                <h1>You currently have no meetup listings.</h1>
+            </div>
+        <% } %>
+    </div>
+</div>
