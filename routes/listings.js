@@ -12,6 +12,7 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+// View current physical listings handler
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
@@ -36,6 +37,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
     });
 });
 
+// View current virtual listings handler
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
