@@ -12,6 +12,12 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+// View current physical listings handler
+router.get('/viewphysical', ensureAuthenticated, (req, res) =>
+    res.render('viewphysicallisting', {
+    }));
+
+// View current virtual listings handler
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
@@ -33,7 +39,8 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
             let rsp = results.rows;
             res.render('viewvirtuallisting', {listings: rsp});
         }
-    });});
+    });
+});
 
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
