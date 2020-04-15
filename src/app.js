@@ -7,22 +7,15 @@ const cron = require('node-cron');
 const { initiateTwilioService } = require ('../twilio/outbound');
 
 /*
-    API Configurations
-*/
-
-const TWILIO_SERVICE = false;
-
-/*
     User account authentication system was created referencing
     Traversy Media's youtube tutorial.
 */
 
-/*
-    Server Configurations
-*/
+// API configuration
+const TWILIO_SERVICE = false;
 
+// Server configurations
 const PORT = 5000;
-
 const app = express();
 
 // Passport configuration
@@ -32,6 +25,7 @@ initializePassport(passport);
 // EJS
 app.use(expressLayouts);
 app.set('view engine', 'ejs');
+app.use( express.static( "public" ) );
 
 // Bodyparser
 app.use(express.urlencoded({ extended: true }));
