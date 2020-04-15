@@ -12,12 +12,36 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+router.get('/viewphysical', ensureAuthenticated, function(req, res){
+    const today = moment().format('YYYY-MM-DD');
+    const currtime = moment().format('hh:mm');
+    console.log("Date: " + today + " " + currtime);
+
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const qry = statements.join('');
+
+    pool.query(qry, (err, results) => {
+        if (err) {
+            throw err;
+        }
+
+        if(results === null){
+            let rsp = {length: 0};
+            res.render('viewphysicallisting', {listings: res});
+        }
+        else{
+            let rsp = results.rows;
+            res.render('viewphysicallisting', {listings: rsp});
+        }
+    });
+});
+
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
     console.log("Date: " + today + " " + currtime);
 
-    const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -33,7 +57,8 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
             let rsp = results.rows;
             res.render('viewvirtuallisting', {listings: rsp});
         }
-    });});
+    });
+});
 
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
