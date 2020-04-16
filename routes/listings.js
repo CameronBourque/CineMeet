@@ -25,12 +25,10 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
         if (err) {
             throw err;
         }
-
-        if(results === null){
+        if (results === null) {
             let rsp = {length: 0};
             res.render('viewphysicallisting', {listings: res});
-        }
-        else{
+        } else {
             let rsp = results.rows;
             res.render('viewphysicallisting', {listings: rsp});
         }
@@ -41,7 +39,6 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
-    console.log("Date: " + today + " " + currtime);
 
     const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
@@ -50,31 +47,15 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
         if (err) {
             throw err;
         }
-
-        if(results === null){
+        if (results === null) {
             let rsp = {length: 0};
             res.render('viewvirtuallisting', {listings: res});
-        }
-        else{
+        } else {
             let rsp = results.rows;
             res.render('viewvirtuallisting', {listings: rsp});
         }
     });
 });
-
-function setCharAt(str,index,chr) {
-    if(index > str.length-1) return str;
-    return str.substr(0,index) + chr + str.substr(index+1);
-}
-
-function parseSingleQuotes(value) {
-    let arr = value.split(' ');
-    for (let i = 0; i < arr.length; i++) {
-        const temp = arr[i].replace("'", "''");
-        arr[i] = temp;
-    }
-    return (arr.join(' '));
-}
 
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
@@ -169,5 +150,14 @@ router.post('/createphysical', (req, res) => {
         );
     }
 });
+
+function parseSingleQuotes(value) {
+    let arr = value.split(' ');
+    for (let i = 0; i < arr.length; i++) {
+        const temp = arr[i].replace("'", "''");
+        arr[i] = temp;
+    }
+    return (arr.join(' '));
+}
 
 module.exports = router;
