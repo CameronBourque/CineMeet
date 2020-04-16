@@ -17,7 +17,7 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
     const currtime = moment().format('hh:mm');
     console.log("Date: " + today + " " + currtime);
 
-    const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today, "' or (\"date\"='", today, "' and \"time\">'", currtime, "')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today, "' or (\"date\"='", today, "' and \"time\">'", currtime, "')) and (\"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
