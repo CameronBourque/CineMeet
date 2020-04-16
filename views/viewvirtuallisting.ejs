@@ -19,7 +19,7 @@
 <p class="lead mb-3">Virtual movie meetup listings.</p>
 <div class="row mt-5">
     <div class="col-md-10 m-auto">
-        <% if(listings.length > 65){ for(let i = 0; i < listings.length; i++) { %>
+        <% if(listings.length > 0){ for(let i = 0; i < listings.length; i++) { %>
             <div class="card card-body mb-3">
                 <h1><%= listings[i].listingName %> </h1>
                 <h2>Movie: <%= listings[i].movieName %></h2>
