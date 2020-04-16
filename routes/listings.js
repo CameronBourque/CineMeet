@@ -25,12 +25,10 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
         if (err) {
             throw err;
         }
-
-        if(results === null){
+        if (results === null) {
             let rsp = {length: 0};
             res.render('viewphysicallisting', {listings: res});
-        }
-        else{
+        } else {
             let rsp = results.rows;
             res.render('viewphysicallisting', {listings: rsp});
         }
@@ -41,7 +39,6 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
-    console.log("Date: " + today + " " + currtime);
 
     const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
@@ -50,12 +47,10 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
         if (err) {
             throw err;
         }
-
-        if(results === null){
+        if (results === null) {
             let rsp = {length: 0};
             res.render('viewvirtuallisting', {listings: res});
-        }
-        else{
+        } else {
             let rsp = results.rows;
             res.render('viewvirtuallisting', {listings: rsp});
         }
@@ -66,6 +61,10 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
 router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype } = req.body;
     let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
 
     // Check required fields
     if (!listingname || !moviename || !date || !time || !service || !eventtype) {
@@ -84,8 +83,9 @@ router.post('/createvirtual', (req, res) => {
         });
     } else {
         const owner = req.user.userName;
-        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES ('", listingname + "', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
+        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
         const query = statements.join('');
+        console.log(query);
         pool.query(query, (err, results) => {
                 if (err) {
                     throw err;
@@ -106,6 +106,15 @@ router.post('/createphysical', (req, res) => {
     if (!listingname || !moviename || !date || !time || !venue || !address || !city || !state || !zipcode || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
     }
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+    venue = parseSingleQuotes(venue);
+    address = parseSingleQuotes(address);
+    address2 = parseSingleQuotes(address2);
+    city = parseSingleQuotes(city);
+    zipcode = parseSingleQuotes(zipcode);
 
     if (errors.length > 0) {
         res.render('createphysicallisting', {
@@ -141,5 +150,14 @@ router.post('/createphysical', (req, res) => {
         );
     }
 });
+
+function parseSingleQuotes(value) {
+    let arr = value.split(' ');
+    for (let i = 0; i < arr.length; i++) {
+        const temp = arr[i].replace("'", "''");
+        arr[i] = temp;
+    }
+    return (arr.join(' '));
+}
 
 module.exports = router;
