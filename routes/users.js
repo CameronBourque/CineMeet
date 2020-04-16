@@ -11,9 +11,54 @@ router.get('/login', (req, res) => res.render('login'));
 router.get('/register', (req, res) => res.render('register'));
 
 // Friends
-router.get('/friends', ensureAuthenticated, (req, res) =>
-    res.render('friendslist', {
-    }));
+router.get('/friends', ensureAuthenticated, function(req, res){
+    const userName = req.user.userName;
+
+    const statements = ["SELECT friend FROM \"UserFriends\" WHERE owner = '", userName, "';"];
+    const query = statements.join('');
+
+    pool
+        .query(query)
+        .then(results => {
+            res.render('friendslist', { friends: results.rows });
+        })
+        .catch(e => console.error(e.stack))
+
+});
+
+// Add friend
+router.post('/addfriend', (req, res) => {
+    let { friend } = req.body;
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"User\" WHERE \"userName\" = '", friend, "';"];
+    let query = statements.join('');
+    pool
+        .query(query)
+        .then(results => {
+            if (results.rows.length > 0) {
+                if (results.rows[0].userName !== userName) {
+                    statements = ["INSERT INTO \"UserFriends\" (owner, friend) VALUES ('", userName, "', '", friend, "');"];
+                    query = statements.join('');
+                    pool
+                        .query(query)
+                        .then(() => {
+                                req.flash('success_msg', 'You have successfully added ' + friend + '.');
+                                res.redirect('/users/friends');
+                            }
+                        )
+                        .catch(e => console.error(e.stack))
+                } else {
+                    req.flash('error_msg', 'You cannot add yourself as a friend.');
+                    res.redirect('/users/friends');
+                }
+            } else {
+                req.flash('error_msg', 'That user does not exist.');
+                res.redirect('/users/friends');
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
 
 // Register handler
 router.post('/register', (req, res) => {

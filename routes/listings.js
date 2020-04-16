@@ -12,11 +12,31 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
+    const today = moment().format('YYYY-MM-DD');
+    const currtime = moment().format('hh:mm');
+
+    const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today, "' or (\"date\"='", today, "' and \"time\">'", currtime, "')) and (\"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const qry = statements.join('');
+
+    pool.query(qry, (err, results) => {
+        if (err) {
+            throw err;
+        }
+        if (results === null) {
+            let rsp = {length: 0};
+            res.render('myupcomingmeetups', {listings: res});
+        } else {
+            let rsp = results.rows;
+            res.render('myupcomingmeetups', {listings: rsp});
+        }
+    });
+});
+
 // View current physical listings handler
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
-    console.log("Date: " + today + " " + currtime);
 
     const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
@@ -57,6 +77,96 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     });
 });
 
+// Join virtual listing
+router.post('/joinvirtual', (req, res) => {
+    let { id } = req.body;
+
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"ListingParticipants\" WHERE \"userName\" = '", userName, "' AND \"listingID\" = ", id, ";"];
+    let qry = statements.join('');
+
+    pool
+        .query(qry)
+        .then(results => {
+            if (results.rows.length === 0) {
+                statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", userName, "', ", id, ");"];
+                qry = statements.join('');
+                pool
+                    .query(qry)
+                    .then(() => {
+                        req.flash('success_msg', 'You have successfully joined this meetup.');
+                        res.redirect('/listings/viewvirtual')
+                    })
+                    .catch(e => console.error(e.stack))
+            } else {
+                req.flash('error_msg', 'You have already joined this meetup.');
+                res.redirect('/listings/viewvirtual')
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Join physical listing
+router.post('/joinphysical', (req, res) => {
+    let { id } = req.body;
+
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"ListingParticipants\" WHERE \"userName\" = '", userName, "' AND \"listingID\" = ", id, ";"];
+    let qry = statements.join('');
+
+    pool
+        .query(qry)
+        .then(results => {
+            if (results.rows.length === 0) {
+                statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", userName, "', ", id, ");"];
+                qry = statements.join('');
+                pool
+                    .query(qry)
+                    .then(() => {
+                        req.flash('success_msg', 'You have successfully joined this meetup.');
+                        res.redirect('/listings/viewvirtual')
+                    })
+                    .catch(e => console.error(e.stack))
+            } else {
+                req.flash('error_msg', 'You have already joined this meetup.');
+                res.redirect('/listings/viewvirtual')
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Leave listing
+router.post('/leave', (req, res) => {
+    let { id } = req.body;
+
+    const userName = req.user.userName;
+
+    let statements = ["SELECT owner FROM \"UserListing\" where id = ", id, ";"];
+    let qry = statements.join('');
+
+    pool
+        .query(qry)
+        .then(results => {
+            if (results.rows[0].owner !== userName) {
+                statements = ["DELETE FROM \"ListingParticipants\" WHERE \"userName\" = '", userName, "' AND \"listingID\" = ", id, ";"];
+                qry = statements.join('');
+                pool
+                    .query(qry)
+                    .then(() => {
+                        req.flash('success_msg', 'You have successfully left the meetup.');
+                        res.redirect('/listings/myupcomingmeetups')
+                    })
+                    .catch(e => console.error(e.stack))
+            } else {
+                req.flash('error_msg', 'You may not leave your own meetup.');
+                res.redirect('/listings/myupcomingmeetups')
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
+
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype } = req.body;
@@ -83,17 +193,29 @@ router.post('/createvirtual', (req, res) => {
         });
     } else {
         const owner = req.user.userName;
-        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
-        const query = statements.join('');
-        console.log(query);
-        pool.query(query, (err, results) => {
-                if (err) {
-                    throw err;
-                }
-                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                res.redirect('/dashboard')
-            }
-        );
+        let statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
+        let query = statements.join('');
+        pool
+            .query(query)
+            .then(() => {
+                statements = ["SELECT id FROM \"UserListing\" ORDER BY id DESC LIMIT 1"]
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", owner, "', ", results.rows[0].id, ");"];
+                        query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(() => {
+                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    })
+                    .catch(e => console.error(e.stack))
+            })
+            .catch(e => console.error(e.stack))
     }
 });
 
@@ -139,15 +261,29 @@ router.post('/createphysical', (req, res) => {
         } else {
             statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, \"venueName\", address, address2, city, state, zipcode, status, type, owner) VALUES ('", listingname + "', '", moviename + "', '", date + "', '", time + "', '", venue + "', '", address + "', '", address2 + "', '", city + "', '", state + "', '", zipcode + "', '", eventtype + "', '", "physical" + "', '", owner + "');"];
         }
-        const query = statements.join('');
-        pool.query(query, (err, results) => {
-                if (err) {
-                    throw err;
-                }
-                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                res.redirect('/dashboard')
-            }
-        );
+        let query = statements.join('');
+
+        pool
+            .query(query)
+            .then(() => {
+                statements = ["SELECT id FROM \"UserListing\" ORDER BY id DESC LIMIT 1"]
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", owner, "', ", results.rows[0].id, ");"];
+                        query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(() => {
+                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    })
+                    .catch(e => console.error(e.stack))
+            })
+            .catch(e => console.error(e.stack))
     }
 });
 

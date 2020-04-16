@@ -19,7 +19,7 @@
     </li>
 </ul>
 <h1 class="mt-4">CineMeet</h1>
-<p class="lead mb-3">Physical movie meetup listings.</p>
+<p class="lead mb-3">Upcoming movie meetup listings.</p>
 <div class="row mt-5">
     <div class="col-md-10 m-auto">
         <% include ./partials/messages %>
@@ -29,17 +29,21 @@
                 <h2>Movie: <%= listings[i].movieName %></h2>
                 <p>Date: <%= listings[i].date%> Time: <%= listings[i].time%></p>
                 <p>Creator: <%= listings[i].owner %></p>
-                <p>Venue: <%= listings[i].venueName %></p>
-                <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
+                <% if(listings[i].type == 'physical'){ %>
+                    <p>Venue: <%= listings[i].venueName %></p>
+                    <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
+                <% } else{ %>
+                    <p>Streaming Service: <%= listings[i].service %></p>
+                <% } %>
                 <p>Status: <%= listings[i].status %></p>
-                <form action="/listings/joinphysical" method="POST">
+                <form action="/listings/leave" method="POST">
                     <input type="hidden" name="id" value="<%= listings[i].id %>">
-                    <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
+                    <button type="submit" class="btn btn-primary btn-block">Leave Meetup</button>
                 </form>
             </div>
         <% }} else{ %>
             <div class="card card-body">
-                <h>There are currently no physical meetup listings.</h>
+                <h>You currently have no meetups coming up!</h>
             </div>
         <% } %>
     </div>
