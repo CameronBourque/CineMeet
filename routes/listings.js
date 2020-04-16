@@ -137,6 +137,36 @@ router.post('/joinphysical', (req, res) => {
         .catch(e => console.error(e.stack))
 });
 
+// Leave listing
+router.post('/leave', (req, res) => {
+    let { id } = req.body;
+
+    const userName = req.user.userName;
+
+    let statements = ["SELECT owner FROM \"UserListing\" where id = ", id, ";"];
+    let qry = statements.join('');
+
+    pool
+        .query(qry)
+        .then(results => {
+            if (results.rows[0].owner !== userName) {
+                statements = ["DELETE FROM \"ListingParticipants\" WHERE \"userName\" = '", userName, "' AND \"listingID\" = ", id, ";"];
+                qry = statements.join('');
+                pool
+                    .query(qry)
+                    .then(() => {
+                        req.flash('success_msg', 'You have successfully left the meetup.');
+                        res.redirect('/listings/myupcomingmeetups')
+                    })
+                    .catch(e => console.error(e.stack))
+            } else {
+                req.flash('error_msg', 'You may not leave your own meetup.');
+                res.redirect('/listings/myupcomingmeetups')
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
+
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype } = req.body;
