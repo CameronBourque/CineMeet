@@ -1,64 +1,45 @@
-<html>
-<head>
-	<title></title>
-</head>
-<body>
-	<input type="text" id="newfriend" placeholder="Add Friend" />
-	<button type="submit" id="submit">Submit</button>
-	<p id="para">Test For Buttons</p>
+<ul class="nav nav-tabs mt-1">
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/dashboard">Dashboard</a>
+	</li>
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
+	</li>
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
+	</li>
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
+	</li>
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/dashboard">Settings</a>
+	</li>
+	<li class="nav-item mr-2">
+		<a class="nav-link" href="/users/logout">Logout</a>
+	</li>
+</ul>
+<h1 class="mt-4">CineMeet</h1>
+<p class="lead mb-3">The users I trust.</p>
+<h1 class="text-center mt-4">My Friends</h1>
+<div class="row mt-4">
+	<div class="col-md-6 m-auto text-center">
+		<% include ./partials/messages %>
+			<div class="card card-body mb-3">
+				<% if (friends.length > 0) { for (let i = 0; i < friends.length; i++) { %>
+				<p><%= friends[i].friend %></p>
+				<% } } %>
+			</div>
+		<% if (friends.length === 0) { %>
+			<div class="card card-body">
+				<h>You currently have no added friends.</h>
+			</div>
+		<% } %>
+	</div>
+</div>
 
-</body>
-</html>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script>
-
-//Initial Friends list from https://gist.github.com/sam-david/404332d2f01716019398
-
-//Hardcoded names, in future will need to update this based of current friends   
-var friends = ['Hannah', 'Akshay', 'Suran', 'Cameron', 'Luke'];
-function createList() {
-	var list = "<ul style='list-style-type:none'; id='list'>"
-
-	//<li> info </li> adds the needed structure to the list
-	//CHANGE "changeColor" TO THE CORRECT FUNCTION LATER
-	
-	for(i=0; i < friends.length; i++) {
-		var x;
-		if(i % 2 == 0)
-			x = '<li>' + '<button onclick = "changeColor(0);" >' + friends[i] + '</button>' + '</li>';
-		else
-			x = '<li>' + '<button onclick = "changeColor(1);" >' + friends[i] + '</button>' + '</li>';
-		//x = '<li>' + '<button onclick = "changeColor(#ff0000);" >' + friends[i] + '</button>' + '</li>'	
-		list = list + x;
-		console.log(list);
-	}
-
-	list = list + '</ul>'
-	console.log(list);
-	// Use jQuery to select the body tag on the index and append the finish table string
-	$("body").append(list);
-}
-
-//initial function from https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementById
-function changeColor(newColor) {
-  var elem = document.getElementById('para');
-  if(newColor == 0)
-	elem.style.color = "red";
-  else
-	elem.style.color = "blue";
-}
-function addFriend() {
-	friends.push(newFriend);
-}
-
-$("#submit").on('click', function() {
-	newFriend = $("#newfriend").val();
-	addFriend(newFriend);
-	if(friends.length % 2 ==0)
-		$("#list").append("<li>" + '<button onclick = "changeColor(1);" >' + newFriend + '</button>' + "</li>");
-	else
-		$("#list").append("<li>" + '<button onclick = "changeColor(0);" >' + newFriend + '</button>' + "</li>");
-})
-
-createList();
-</script>
+<div class="col-md-6 m-auto text-center">
+	<form action="/users/addfriend" method="POST">
+		<input class="mt-4" type="text" name="friend" placeholder="Enter username">
+		<button type="submit" class="btn btn-primary btn-block mt-4">Add Friend</button>
+	</form>
+</div>
