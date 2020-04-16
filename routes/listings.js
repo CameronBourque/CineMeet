@@ -79,8 +79,38 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     });
 });
 
-// Create virtual listing handler
+// Join virtual listing
 router.post('/joinvirtual', (req, res) => {
+    let { id } = req.body;
+
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"ListingParticipants\" WHERE \"userName\" = '", userName, "' AND \"listingID\" = ", id, ";"];
+    let qry = statements.join('');
+
+    pool
+        .query(qry)
+        .then(results => {
+            if (results.rows.length === 0) {
+                statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", userName, "', ", id, ");"];
+                qry = statements.join('');
+                pool
+                    .query(qry)
+                    .then(() => {
+                        req.flash('success_msg', 'You have successfully joined this meetup.');
+                        res.redirect('/listings/viewvirtual')
+                    })
+                    .catch(e => console.error(e.stack))
+            } else {
+                req.flash('error_msg', 'You have already joined this meetup.');
+                res.redirect('/listings/viewvirtual')
+            }
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Join physical listing
+router.post('/joinphysical', (req, res) => {
     let { id } = req.body;
 
     const userName = req.user.userName;

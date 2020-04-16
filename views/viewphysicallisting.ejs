@@ -19,6 +19,7 @@
 <p class="lead mb-3">Physical movie meetup listings.</p>
 <div class="row mt-5">
     <div class="col-md-10 m-auto">
+        <% include ./partials/messages %>
         <% if(listings.length > 0){ for(let i = 0; i < listings.length; i++) { %>
             <div class="card card-body mb-3">
                 <h1><%= listings[i].listingName %> </h1>
@@ -28,6 +29,10 @@
                 <p>Venue: <%= listings[i].venueName %></p>
                 <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
                 <p>Status: <%= listings[i].status %></p>
+                <form action="/listings/joinphysical" method="POST">
+                    <input type="hidden" name="id" value="<%= listings[i].id %>">
+                    <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
+                </form>
             </div>
         <% }} else{ %>
             <div class="card card-body">
