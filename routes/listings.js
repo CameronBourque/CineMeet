@@ -12,6 +12,10 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
     res.render('createvirtuallisting', {
     }));
 
+router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>
+    res.render('myupcomingmeetups', {
+    }));
+
 // View current physical listings handler
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
