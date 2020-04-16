@@ -64,10 +64,10 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
         }
         if (results === null) {
             let rsp = {length: 0};
-            res.render('viewphysicallisting', {listings: rsp});
+            res.render('viewphysicallisting', {listings: res, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewphysicallisting', {listings: rsp});
+            res.render('viewphysicallisting', {listings: rsp, owner: req.user.userName});
         }
     });
 });
@@ -86,10 +86,10 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
         }
         if (results === null) {
             let rsp = {length: 0};
-            res.render('viewvirtuallisting', {listings: res});
+            res.render('viewvirtuallisting', {listings: res, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewvirtuallisting', {listings: rsp});
+            res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         }
     });
 });
