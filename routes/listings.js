@@ -193,16 +193,29 @@ router.post('/createvirtual', (req, res) => {
         });
     } else {
         const owner = req.user.userName;
-        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
-        const query = statements.join('');
-        pool.query(query, (err, results) => {
-                if (err) {
-                    throw err;
-                }
-                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                res.redirect('/dashboard')
-            }
-        );
+        let statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
+        let query = statements.join('');
+        pool
+            .query(query)
+            .then(() => {
+                statements = ["SELECT id FROM \"UserListing\" ORDER BY id DESC LIMIT 1"]
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", owner, "', ", results.rows[0].id, ");"];
+                        query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(() => {
+                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    })
+                    .catch(e => console.error(e.stack))
+            })
+            .catch(e => console.error(e.stack))
     }
 });
 
@@ -248,15 +261,29 @@ router.post('/createphysical', (req, res) => {
         } else {
             statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, \"venueName\", address, address2, city, state, zipcode, status, type, owner) VALUES ('", listingname + "', '", moviename + "', '", date + "', '", time + "', '", venue + "', '", address + "', '", address2 + "', '", city + "', '", state + "', '", zipcode + "', '", eventtype + "', '", "physical" + "', '", owner + "');"];
         }
-        const query = statements.join('');
-        pool.query(query, (err, results) => {
-                if (err) {
-                    throw err;
-                }
-                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                res.redirect('/dashboard')
-            }
-        );
+        let query = statements.join('');
+
+        pool
+            .query(query)
+            .then(() => {
+                statements = ["SELECT id FROM \"UserListing\" ORDER BY id DESC LIMIT 1"]
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        statements = ["INSERT INTO \"ListingParticipants\" (\"userName\", \"listingID\") VALUES ('", owner, "', ", results.rows[0].id, ");"];
+                        query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(() => {
+                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    })
+                    .catch(e => console.error(e.stack))
+            })
+            .catch(e => console.error(e.stack))
     }
 });
 
