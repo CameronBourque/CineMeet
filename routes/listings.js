@@ -94,7 +94,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     });
 });
 
-// Join virtual listing
+// Join virtual listing handler
 router.post('/joinvirtual', (req, res) => {
     let { id } = req.body;
 
@@ -124,7 +124,7 @@ router.post('/joinvirtual', (req, res) => {
         .catch(e => console.error(e.stack))
 });
 
-// Join physical listing
+// Join physical listing handler
 router.post('/joinphysical', (req, res) => {
     let { id } = req.body;
 
@@ -154,7 +154,7 @@ router.post('/joinphysical', (req, res) => {
         .catch(e => console.error(e.stack))
 });
 
-// Leave listing
+// Leave listing handler
 router.post('/leave', (req, res) => {
     let { id } = req.body;
 
