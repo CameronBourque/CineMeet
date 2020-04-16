@@ -1,0 +1,42 @@
+<ul class="nav nav-tabs mt-1">
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="/dashboard">Dashboard</a>
+    </li>
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
+    </li>
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
+    </li>
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="/dashboard">Settings</a>
+    </li>
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="/users/logout">Logout</a>
+    </li>
+</ul>
+<h1 class="mt-4">CineMeet</h1>
+<p class="lead mb-3">Physical movie meetup listings.</p>
+<div class="row mt-5">
+    <div class="col-md-10 m-auto">
+        <% if(listings.length > 0){ for(let i = 0; i < listings.length; i++) { %>
+            <div class="card card-body mb-3">
+                <h1><%= listings[i].listingName %> </h1>
+                <h2>Movie: <%= listings[i].movieName %></h2>
+                <p>Date: <%= listings[i].date%> Time: <%= listings[i].time%></p>
+                <p>Creator: <%= listings[i].owner %></p>
+                <%= if(listings[i].type == 'physical'){ %>
+                    <p>Venue: <%= listings[i].venueName %></p>
+                    <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
+                <%= } else{ %>
+                    <p>Streaming Service: <%= listings[i].service %></p>
+                <% } %>
+                <p>Status: <%= listings[i].status %></p>
+            </div>
+        <% }} else{ %>
+            <div class="card card-body">
+                <h>There are currently no physical meetup listings.</h>
+            </div>
+        <% } %>
+    </div>
+</div>

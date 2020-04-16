@@ -14,6 +14,25 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
 
 router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>
     res.render('myupcomingmeetups', {
+        const today = moment().format('YYYY-MM-DD');
+        const currtime = moment().format('hh:mm');
+        console.log("Date: " + today + " " + currtime);
+
+        const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+        const qry = statements.join('');
+
+        pool.query(qry, (err, results) => {
+            if (err) {
+                throw err;
+            }
+            if (results === null) {
+                let rsp = {length: 0};
+                res.render('myupcomingmeetups', {listings: res});
+            } else {
+                let rsp = results.rows;
+                res.render('myupcomingmeetups', {listings: rsp});
+            }
+        });
     }));
 
 // View current physical listings handler
