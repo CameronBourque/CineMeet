@@ -15,7 +15,6 @@ router.get('/createvirtual', ensureAuthenticated, (req, res) =>
 router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
-    console.log("Date: " + today + " " + currtime);
 
     const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today, "' or (\"date\"='", today, "' and \"time\">'", currtime, "')) and (\"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
@@ -38,7 +37,6 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
-    console.log("Date: " + today + " " + currtime);
 
     const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
@@ -167,7 +165,6 @@ router.post('/createvirtual', (req, res) => {
         const owner = req.user.userName;
         const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
         const query = statements.join('');
-        console.log(query);
         pool.query(query, (err, results) => {
                 if (err) {
                     throw err;
