@@ -19,18 +19,35 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
     const statements = ["SELECT * from \"UserListing\" where (\"date\">'", today, "' or (\"date\"='", today, "' and \"time\">'", currtime, "')) and (\"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
     const qry = statements.join('');
 
-    pool.query(qry, (err, results) => {
-        if (err) {
-            throw err;
-        }
-        if (results === null) {
-            let rsp = {length: 0};
-            res.render('myupcomingmeetups', {listings: res});
-        } else {
-            let rsp = results.rows;
-            res.render('myupcomingmeetups', {listings: rsp});
-        }
-    });
+    pool.query(qry)
+        .then(results => {
+            let members = [];
+            if (results === null) {
+                let rsp = {length: 0};
+                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+            } else {
+                for(let i = 0; i < results.rows.length; i++){
+                    const stmt2 = ["SELECT \"userName\" from \"ListingParticipants\" where \"listingID\" = any(SELECT \"id\" from \"UserListing\" where \"id\"=", results.rows[i].id + ");"];
+
+                    pool.query(stmt2.join(''))
+                        .then(res => {
+                            let temp = [];
+                            for (let j = 0; j < res.rows.length; j++) {
+                                temp.push(res.rows[j].userName);
+                            }
+                            members.push(temp);
+                            console.log(members);
+                        })
+                        .catch(err => {throw err;});
+                    console.log(members);
+                }
+
+                console.log(members);
+                let rsp = results.rows;
+                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+            }
+        })
+        .catch(err => {throw err;});
 });
 
 // View current physical listings handler
@@ -38,7 +55,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -60,7 +77,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"')) and (\"owner\"='", req.user.userName + "' or \"id\" = any(SELECT \"listingID\" from \"ListingParticipants\" where \"userName\"='", req.user.userName + "'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
