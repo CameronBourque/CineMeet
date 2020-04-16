@@ -62,10 +62,28 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     });
 });
 
+function setCharAt(str,index,chr) {
+    if(index > str.length-1) return str;
+    return str.substr(0,index) + chr + str.substr(index+1);
+}
+
+function parseSingleQuotes(value) {
+    let arr = value.split(' ');
+    for (let i = 0; i < arr.length; i++) {
+        const temp = arr[i].replace("'", "''");
+        arr[i] = temp;
+    }
+    return (arr.join(' '));
+}
+
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype } = req.body;
     let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
 
     // Check required fields
     if (!listingname || !moviename || !date || !time || !service || !eventtype) {
@@ -84,8 +102,9 @@ router.post('/createvirtual', (req, res) => {
         });
     } else {
         const owner = req.user.userName;
-        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES ('", listingname + "', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
+        const statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
         const query = statements.join('');
+        console.log(query);
         pool.query(query, (err, results) => {
                 if (err) {
                     throw err;
@@ -106,6 +125,15 @@ router.post('/createphysical', (req, res) => {
     if (!listingname || !moviename || !date || !time || !venue || !address || !city || !state || !zipcode || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
     }
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+    venue = parseSingleQuotes(venue);
+    address = parseSingleQuotes(address);
+    address2 = parseSingleQuotes(address2);
+    city = parseSingleQuotes(city);
+    zipcode = parseSingleQuotes(zipcode);
 
     if (errors.length > 0) {
         res.render('createphysicallisting', {
