@@ -35,6 +35,13 @@
                 <% } else{ %>
                     <p>Streaming Service: <%= listings[i].service %></p>
                 <% } %>
+                <% if(participants.length > 0){ %>
+                    <p>Members:</p>
+                <% participants[i].forEach( function (item){ %>
+                    <p>- <%= item.userName %> </p>
+                <% }); } else { %>
+                    <p>Currently there are no members.</p>
+                <% } %>
                 <p>Status: <%= listings[i].status %></p>
                 <form action="/listings/leave" method="POST">
                     <input type="hidden" name="id" value="<%= listings[i].id %>">
