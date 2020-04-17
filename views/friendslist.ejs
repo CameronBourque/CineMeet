@@ -12,14 +12,14 @@
 		<a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
 	</li>
 	<li class="nav-item mr-2">
-		<a class="nav-link" href="/dashboard">Settings</a>
+		<a class="nav-link" href="/users/settings">Settings</a>
 	</li>
 	<li class="nav-item mr-2">
 		<a class="nav-link" href="/users/logout">Logout</a>
 	</li>
 </ul>
 <h1 class="mt-4">CineMeet</h1>
-<p class="lead mb-3">The users I trust.</p>
+<p class="lead mb-3">My friends list.</p>
 <h1 class="text-center mt-4">My Friends</h1>
 <div class="row mt-4">
 	<div class="col-md-6 m-auto text-center">
@@ -39,7 +39,16 @@
 
 <div class="col-md-6 m-auto text-center">
 	<form action="/users/addfriend" method="POST">
-		<input class="mt-4" type="text" name="friend" placeholder="Enter username">
+		<div class="form-group">
+			<label for="friend">Friend's Username</label>
+			<input
+					type="text"
+					id="friend"
+					name="friend"
+					class="form-control"
+					placeholder="Enter username"
+			/>
+		</div>
 		<button type="submit" class="btn btn-primary btn-block mt-4">Add Friend</button>
 	</form>
 </div>
