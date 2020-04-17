@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { ensureAuthenticated } = require('../config/auth');
+const { getClient } = require('../discord/outbound');
 
 router.get('/createphysical', ensureAuthenticated, (req, res) =>
     res.render('createphysicallisting', {
@@ -21,30 +22,34 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
 
     pool.query(qry)
         .then(results => {
-            let members = [];
             if (results === null) {
                 let rsp = {length: 0};
-                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                res.render('myupcomingmeetups', {listings: rsp, participants: []});
             } else {
-                for(let i = 0; i < results.rows.length; i++){
-                    const stmt2 = ["SELECT \"userName\" from \"ListingParticipants\" where \"listingID\" = any(SELECT \"id\" from \"UserListing\" where \"id\"=", results.rows[i].id + ");"];
-
-                    pool.query(stmt2.join(''))
-                        .then(res => {
-                            let temp = [];
-                            for (let j = 0; j < res.rows.length; j++) {
-                                temp.push(res.rows[j].userName);
-                            }
-                            members.push(temp);
-                            console.log(members);
-                        })
-                        .catch(err => {throw err;});
-                    console.log(members);
+                async function getMembers() {
+                    let ret = await Promise.all(results.rows.map(async (listing) => {
+                        const stmt2 = ["SELECT \"userName\" from \"ListingParticipants\" where \"listingID\" = any(SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                        let temp = [];
+                        await pool.query(stmt2.join(''))
+                            .then(res => {
+                                for (let j = 0; j < res.rows.length; j++) {
+                                    temp.push(res.rows[j].userName);
+                                }
+                            })
+                            .catch(err => {
+                                throw err;
+                            });
+                        return temp;
+                    })).catch(err => {throw err;});
+                    console.log(ret);
+                    return ret;
                 }
-
-                console.log(members);
                 let rsp = results.rows;
-                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                renderer();
+                async function renderer() {
+                    const members = await getMembers();
+                    res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                }
             }
         })
         .catch(err => {throw err;});
@@ -76,6 +81,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
+
 
     const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
@@ -186,7 +192,7 @@ router.post('/leave', (req, res) => {
 
 // Create virtual listing handler
 router.post('/createvirtual', (req, res) => {
-    let { listingname, moviename, date, time, service, eventtype } = req.body;
+    let { listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -206,7 +212,8 @@ router.post('/createvirtual', (req, res) => {
             date,
             time,
             service,
-            eventtype
+            eventtype,
+            externalpost
         });
     } else {
         const owner = req.user.userName;
@@ -225,8 +232,23 @@ router.post('/createvirtual', (req, res) => {
                         pool
                             .query(query)
                             .then(() => {
-                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                                res.redirect('/dashboard');
+                                if (externalpost === 'D' || externalpost === 'DF') {
+                                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                                    const query = statements.join('');
+                                    pool
+                                        .query(query)
+                                        .then(results => {
+                                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                                sendDiscord(owner, message, results.rows[0].discordChannel);
+                                            } else {
+                                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                                            }
+                                            req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                                            res.redirect('/dashboard');
+                                        })
+                                        .catch(e => console.error(e.stack))
+                                }
                             })
                             .catch(e => console.error(e.stack))
                     })
@@ -238,7 +260,7 @@ router.post('/createvirtual', (req, res) => {
 
 // Create physical listing handler
 router.post('/createphysical', (req, res) => {
-    let { listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype } = req.body;
+    let { listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype, externalpost } = req.body;
     let errors = [];
 
     // Check required fields
@@ -293,8 +315,23 @@ router.post('/createphysical', (req, res) => {
                         pool
                             .query(query)
                             .then(() => {
-                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                                res.redirect('/dashboard');
+                                if (externalpost === 'D' || externalpost === 'DF') {
+                                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                                    const query = statements.join('');
+                                    pool
+                                        .query(query)
+                                        .then(results => {
+                                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Venue: " + venue + "\n" + "Address: " + address + "\n" + "Address2: " + address2 + "\n" + "City: " + city + "\n" + "State: " + state + "\n" + "Zipcode: " + zipcode + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                                sendDiscord(owner, message, results.rows[0].discordChannel);
+                                            } else {
+                                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                                            }
+                                            req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                                            res.redirect('/dashboard');
+                                        })
+                                        .catch(e => console.error(e.stack))
+                                }
                             })
                             .catch(e => console.error(e.stack))
                     })
@@ -303,6 +340,12 @@ router.post('/createphysical', (req, res) => {
             .catch(e => console.error(e.stack))
     }
 });
+
+function sendDiscord(owner, message, channelId) {
+    const client = getClient();
+    let channel = client.channels.cache.get(channelId);
+    channel.send(message);
+}
 
 function parseSingleQuotes(value) {
     let arr = value.split(' ');

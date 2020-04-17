@@ -1,0 +1,61 @@
+<ul class="nav nav-tabs mt-1">
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/dashboard">Dashboard</a>
+    </li>
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
+    </li>
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
+    </li>
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
+    </li>
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/users/settings">Settings</a>
+    </li>
+    <li class="nav-item mr-2">
+        <a class="nav-link" href="/users/logout">Logout</a>
+    </li>
+</ul>
+<h1 class="mt-4">CineMeet</h1>
+<p class="lead mb-3">My user settings.</p>
+<h1 class="text-center mt-4">My Settings</h1>
+<div class="row mt-4">
+    <div class="col-md-6 m-auto text-center">
+        <div class="card card-body mb-3">
+            <form action="/users/settings" method="POST">
+            <div class="form-group">
+                <label for="discord">Discord Channel ID</label>
+                <input
+                        type="text"
+                        id="discord"
+                        name="discord"
+                        class="form-control"
+                        placeholder="Enter discord channel id"
+                        value="<%= typeof discord != 'undefined' ? discord : '' %>"
+                />
+            </div>
+                <a href="https://discordapp.com/api/oauth2/authorize?client_id=696089575273136138&permissions=3072&scope=bot" target="_blank">Click Here to Add Our Discord Bot to Your Server</a>
+            <div class="form-group mt-2">
+                <label for="twilio">Twilio Service</label>
+                <select id="twilio" name="twilio" class="form-control">
+                    <% if (twilioService === 'on') { %>
+                        <option value="on" selected>Receive SMS reminders about my meetups.</option>
+                    <% } else { %>
+                        <option value="on">Receive SMS reminders about my meetups.</option>
+                    <% } %>
+
+                    <% if (twilioService === 'off') { %>
+                    <option value="off" selected>Off</option>
+                    <% } else { %>
+                        <option value="off">Off</option>
+                    <% } %>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Save Settings</button>
+            </form>
+        </div>
+
+    </div>
+</div>

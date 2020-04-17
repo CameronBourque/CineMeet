@@ -57,19 +57,28 @@ const sendSMS = () => {
     const todaysDate = moment(moment().format("YYYY-MM-DD"));
     for (const [k, v] of userListings.entries()) {
         const toPhoneNumber = userPhoneNumbers.get(k);
-        for (let i = 0; i < v.length; i++) {
-            const listingDate = moment(v[0]);
-            if (listingDate.diff((todaysDate)) <= reminderThreshold) {
-                const daysLeft = listingDate.from((todaysDate));
-                const message = "You have a movie meetup coming up " + daysLeft + " - on " + v[0] + ".";
-                client.messages.create({
-                    body: message,
-                    to: toPhoneNumber,
-                    from: fromPhoneNumber
-                })
-                    .then((message) => console.log(message.sid));
-            }
-        }
+        const statements = ["SELECT \"twilioService\" FROM \"User\" WHERE \"userName\" = '", k, "';"];
+        const query = statements.join('');
+        pool
+            .query(query)
+            .then(results => {
+                if (results.rows[0].twilioService === 'on') {
+                    for (let i = 0; i < v.length; i++) {
+                        const listingDate = moment(v[0]);
+                        if (listingDate.diff((todaysDate)) <= reminderThreshold) {
+                            const daysLeft = listingDate.from((todaysDate));
+                            const message = "You have a movie meetup coming up " + daysLeft + " - on " + v[0] + ".";
+                            client.messages.create({
+                                body: message,
+                                to: toPhoneNumber,
+                                from: fromPhoneNumber
+                            })
+                                .then((message) => console.log(message.sid));
+                        }
+                    }
+                }
+            })
+            .catch(e => console.error(e.stack))
     }
 }
 

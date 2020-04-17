@@ -5,6 +5,7 @@ const session = require('express-session');
 const passport = require('passport');
 const cron = require('node-cron');
 const { initiateTwilioService } = require ('../twilio/outbound');
+const { initiateDiscordService } = require ('../discord/outbound');
 
 /*
     User account authentication system was created referencing
@@ -13,6 +14,9 @@ const { initiateTwilioService } = require ('../twilio/outbound');
 
 // API configuration
 const TWILIO_SERVICE = false;
+
+// Discord configuration
+initiateDiscordService();
 
 // Server configurations
 const PORT = 5000;

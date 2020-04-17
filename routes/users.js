@@ -10,8 +10,48 @@ router.get('/login', (req, res) => res.render('login'));
 // Register
 router.get('/register', (req, res) => res.render('register'));
 
+// Settings
+router.get('/settings', ensureAuthenticated, function(req, res) {
+    const userName = req.user.userName;
+
+    const statements = ["SELECT \"discordChannel\", \"twilioService\" FROM \"User\" WHERE \"userName\" = '", userName, "';"];
+    const query = statements.join('');
+
+    pool
+        .query(query)
+        .then(results => {
+            let discord = results.rows[0].discordChannel;
+            const twilioService = results.rows[0].twilioService;
+            if (discord === null) {
+                discord = '';
+            }
+            res.render('settings', {
+                discord,
+                twilioService
+            });
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Save settings handler
+router.post('/settings', ensureAuthenticated, function(req, res) {
+    const { discord, twilio } = req.body;
+    const userName = req.user.userName;
+
+    const statements = ["UPDATE \"User\" SET \"discordChannel\" = '", discord, "', \"twilioService\" = '", twilio, "' WHERE \"userName\" = '", userName, "';"];
+    const query = statements.join('');
+
+    pool
+        .query(query)
+        .then(() => {
+            req.flash('success_msg', 'You have successfully changed your settings.');
+            res.redirect('/dashboard');
+        })
+        .catch(e => console.error(e.stack))
+});
+
 // Friends
-router.get('/friends', ensureAuthenticated, function(req, res){
+router.get('/friends', ensureAuthenticated, function(req, res) {
     const userName = req.user.userName;
 
     const statements = ["SELECT friend FROM \"UserFriends\" WHERE owner = '", userName, "';"];
@@ -92,7 +132,7 @@ router.post('/register', (req, res) => {
             password2
         });
     } else {
-        const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "';"];
+        const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "' OR \"userName\" = '", userName, "';"];
         const query = statements.join('');
         pool.query(query, (err, results) => {
                 if (err) {
