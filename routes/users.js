@@ -132,7 +132,7 @@ router.post('/register', (req, res) => {
             password2
         });
     } else {
-        const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "';"];
+        const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "' OR \"userName\" = '", userName, "';"];
         const query = statements.join('');
         pool.query(query, (err, results) => {
                 if (err) {
