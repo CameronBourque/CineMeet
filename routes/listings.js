@@ -21,30 +21,34 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
 
     pool.query(qry)
         .then(results => {
-            let members = [];
             if (results === null) {
                 let rsp = {length: 0};
-                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                res.render('myupcomingmeetups', {listings: rsp, participants: []});
             } else {
-                for(let i = 0; i < results.rows.length; i++){
-                    const stmt2 = ["SELECT \"userName\" from \"ListingParticipants\" where \"listingID\" = any(SELECT \"id\" from \"UserListing\" where \"id\"=", results.rows[i].id + ");"];
-
-                    pool.query(stmt2.join(''))
-                        .then(res => {
-                            let temp = [];
-                            for (let j = 0; j < res.rows.length; j++) {
-                                temp.push(res.rows[j].userName);
-                            }
-                            members.push(temp);
-                            console.log(members);
-                        })
-                        .catch(err => {throw err;});
-                    console.log(members);
+                async function getMembers() {
+                    let ret = await Promise.all(results.rows.map(async (listing) => {
+                        const stmt2 = ["SELECT \"userName\" from \"ListingParticipants\" where \"listingID\" = any(SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                        let temp = [];
+                        await pool.query(stmt2.join(''))
+                            .then(res => {
+                                for (let j = 0; j < res.rows.length; j++) {
+                                    temp.push(res.rows[j].userName);
+                                }
+                            })
+                            .catch(err => {
+                                throw err;
+                            });
+                        return temp;
+                    })).catch(err => {throw err;});
+                    console.log(ret);
+                    return ret;
                 }
-
-                console.log(members);
                 let rsp = results.rows;
-                res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                renderer();
+                async function renderer() {
+                    const members = await getMembers();
+                    res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                }
             }
         })
         .catch(err => {throw err;});

@@ -34,11 +34,10 @@
                     <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
                 <% } else{ %>
                     <p>Streaming Service: <%= listings[i].service %></p>
-                <% } %>
-                <% if(participants.length > 0){ %>
+                <% } if(participants.length > 0 && participants[i].length > 0){ %>
                     <p>Members:</p>
                 <% participants[i].forEach( function (item){ %>
-                    <p>- <%= item.userName %> </p>
+                    <p>- <%= item %> </p>
                 <% }); } else { %>
                     <p>Currently there are no members.</p>
                 <% } %>
