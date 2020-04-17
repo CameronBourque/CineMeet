@@ -60,7 +60,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"friend\" from \"UserFriends\" where \"owner\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -82,8 +82,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"friend\" from \"UserFriends\" where \"owner\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
