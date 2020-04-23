@@ -47,7 +47,7 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
                 renderer();
                 async function renderer() {
                     const members = await getMembers();
-                    res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                    res.render('myupcomingmeetups', {listings: rsp, participants: members, owner: req.user.userName});
                 }
             }
         })
@@ -100,7 +100,43 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
 
 // Edit virtual listing
 router.post('/editvirtual', (req, res) =>{
+    let { id } = req.body;
 
+    const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
+    const qry = statement.join('');
+
+    pool.query(qry, (err, results) => {
+        if(err){
+            throw err;
+        }
+
+        let rsp = results.rows[0];
+        res.render('editvirtuallisting', {listing: rsp});
+    });
+});
+
+// Edit physical listing
+router.post('/editphysical', (req, res) =>{
+    let { id } = req.body;
+
+    const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
+    const qry = statement.join('');
+
+    pool.query(qry, (err, results) => {
+        if(err){
+            throw err;
+        }
+
+        let rsp = results.rows[0];
+
+        res.render('editphysicallisting', {listing: rsp});
+    });
+});
+
+// Delete virtual listing
+router.post('/delete', (req, res) =>{
+   //Delete the listing and all associations
+   res.redirect('myupcomingmeetups');
 });
 
 // Join virtual listing
@@ -152,12 +188,12 @@ router.post('/joinphysical', (req, res) => {
                     .query(qry)
                     .then(() => {
                         req.flash('success_msg', 'You have successfully joined this meetup.');
-                        res.redirect('/listings/viewvirtual')
+                        res.redirect('/listings/viewphysical')
                     })
                     .catch(e => console.error(e.stack))
             } else {
                 req.flash('error_msg', 'You have already joined this meetup.');
-                res.redirect('/listings/viewvirtual')
+                res.redirect('/listings/viewphysical')
             }
         })
         .catch(e => console.error(e.stack))

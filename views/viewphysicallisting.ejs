@@ -97,10 +97,15 @@
                 <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
                 <p>Status: <%= listings[i].status %></p>
                 <% if(listings[i].owner !== owner) { %>
-                <form action="/listings/joinphysical" method="POST">
-                    <input type="hidden" name="id" value="<%= listings[i].id %>">
-                    <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
-                </form>
+                    <form action="/listings/joinphysical" method="POST">
+                        <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
+                    </form>
+                <% } else { %>
+                    <form action="/listings/editphysical" method="POST">
+                        <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <button type="submit" class="btn btn-primary brn-block">Edit Meetup</button>
+                    </form>
                 <% } %>
             </div>
         <% }} else{ %>

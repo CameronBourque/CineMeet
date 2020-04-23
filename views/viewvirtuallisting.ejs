@@ -100,10 +100,15 @@
                 <p>Streaming Service: <%= listings[i].service %></p>
                 <p>Status: <%= listings[i].status %></p>
                 <% if(listings[i].owner !== owner) { %>
-                <form action="/listings/joinvirtual" method="POST">
-                    <input type="hidden" name="id" value="<%= listings[i].id %>">
-                    <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
-                </form>
+                    <form action="/listings/joinvirtual" method="POST">
+                        <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
+                    </form>
+                <% }  else { %>
+                    <form action="/listings/editvirtual" method="POST">
+                        <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <button type="submit" class="btn btn-primary brn-block">Edit Meetup</button>
+                    </form>
                 <% } %>
             </div>
         <% }} else{ %>
