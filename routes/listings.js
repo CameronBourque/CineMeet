@@ -41,7 +41,6 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
                             });
                         return temp;
                     })).catch(err => {throw err;});
-                    console.log(ret);
                     return ret;
                 }
                 let rsp = results.rows;
@@ -60,7 +59,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"friend\" from \"UserFriends\" where \"owner\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -97,6 +96,11 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
             res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         }
     });
+});
+
+// Edit virtual listing
+router.post('/editvirtual', (req, res) =>{
+
 });
 
 // Join virtual listing
