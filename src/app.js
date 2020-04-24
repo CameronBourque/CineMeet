@@ -13,7 +13,7 @@ const { initiateDiscordService } = require ('../discord/outbound');
 */
 
 // API configuration
-const TWILIO_SERVICE = false;
+const TWILIO_SERVICE = true;
 
 // Discord configuration
 initiateDiscordService();
@@ -66,7 +66,8 @@ const port = process.env.PORT || PORT;
 app.listen(port, console.log(`Server started on port ${port}`));
 
 if (TWILIO_SERVICE) {
-    cron.schedule("0 0 0 * * *", () => {
+    console.log("Twilio service initiated.")
+    cron.schedule("* * * * *", () => {
         initiateTwilioService();
     });
 }

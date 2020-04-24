@@ -400,6 +400,12 @@ router.post('/createvirtual', (req, res) => {
         errors.push({ message: 'Please fill in all fields.' } );
     }
 
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
+    }
+
     if (errors.length > 0) {
         res.render('createvirtuallisting', {
             errors,
@@ -462,6 +468,12 @@ router.post('/createphysical', (req, res) => {
     // Check required fields
     if (!listingname || !moviename || !date || !time || !venue || !address || !city || !state || !zipcode || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
     }
 
     // Handle single quotes
