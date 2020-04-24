@@ -88,7 +88,16 @@
     <div class="col-md-10 m-auto">
         <div class="card card-body">
             <% include ./partials/messages %>
-            <form action="/listings/createvirtual" method="POST">
+            <form action="/listings/updatevirtual" method="POST">
+                <div class="form-group col-md-6" type="hidden">
+                    <input
+                            type="hidden"
+                            id="id"
+                            name="id"
+                            class="form-control"
+                            value="<%= listing.id %>"
+                    />
+                </div>
                 <div class="form-row">
                     <div class="form-group col-md-6" >
                         <label for="listingname">Listing Name</label>
@@ -143,7 +152,7 @@
                         <option value="Netflix" <%if(listing.service === "Netflix") {%>selected="true"<%}%>>Netflix</option>
                         <option value="Hulu" <%if(listing.service === "Hulu") {%>selected="true"<%}%>>Hulu</option>
                         <option value="Disney Plus" <%if(listing.service === "Disney Plus") {%>selected="true"<%}%>>Disney Plus</option>
-                        <option value="Amazon Prime" <%if(listing.service === "Amazon Prime") {%>selected="true"<%}%>>Amazon Prime</option>
+                        <option value="Amazon Prime" <%if(listing.service === "Amazon Prime" || listing.service === "Amazon") {%>selected="true"<%}%>>Amazon Prime</option>
                     </select>
                 </div>
                 <div class="form-row">

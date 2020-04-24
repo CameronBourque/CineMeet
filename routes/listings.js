@@ -90,13 +90,109 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
         }
         if (results === null) {
             let rsp = {length: 0};
-            res.render('viewvirtuallisting', {listings: res, owner: req.user.userName});
+            res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         } else {
             let rsp = results.rows;
             res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         }
     });
 });
+
+// Update virtual listing
+router.post('/updatevirtual', (req, res) => {
+    let { id, listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
+    let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+
+    // Check required fields
+    if (!listingname || !moviename || !date || !time || !service || !eventtype) {
+        errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    if (errors.length > 0) {
+        console.log("errors present");
+    } else {
+        let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"service\"='", service, "' WHERE \"id\"=", id, ";"];
+        let query = statements.join('');
+        pool
+            .query(query)
+            .then(() => {
+                if (externalpost === 'D' || externalpost === 'DF') {
+                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                    const query = statements.join('');
+                    pool
+                        .query(query)
+                        .then(results => {
+                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                sendDiscord(owner, message, results.rows[0].discordChannel);
+                            } else {
+                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                            }
+                            req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                            res.redirect('/dashboard');
+                        })
+                        .catch(e => console.error(e.stack))
+                }
+                res.redirect('/listings/myupcomingmeetups');
+            })
+            .catch(e => console.error(e.stack))
+    }
+});
+
+// Update physical listing
+router.post('/updatephysical', (req, res) => {
+    let { id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype, externalpost } = req.body;
+    let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+    venue = parseSingleQuotes(venue);
+    address = parseSingleQuotes(address);
+    address2 = parseSingleQuotes(address2);
+    city = parseSingleQuotes(city);
+    zipcode = parseSingleQuotes(zipcode);
+
+    // Check required fields
+    if (!listingname || !moviename || !date || !time || !venue || !address || !city || !zipcode || !eventtype) {
+        errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    if (errors.length > 0) {
+        console.log("errors present");
+    } else {
+        let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"venueName\"='", venue, "', \"address\"='", address, "', \"address2\"='", address2, "', \"city\"='", city, "', \"state\"='", state,"', \"zipcode\"='", zipcode, "' WHERE \"id\"=", id, ";"];
+        let query = statements.join('');
+        console.log(query);
+        pool
+            .query(query)
+            .then(() => {
+                if (externalpost === 'D' || externalpost === 'DF') {
+                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                    const query = statements.join('');
+                    pool
+                        .query(query)
+                        .then(results => {
+                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Venue: " + venue + "\n" + "Address: " + address + "\n" + "Address2: " + address2 + "\n" + "City: " + city + "\n" + "State: " + state + "\n" + "Zipcode: " + zipcode + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                sendDiscord(owner, message, results.rows[0].discordChannel);
+                            } else {
+                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                            }
+                            req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                            res.redirect('/dashboard');
+                        })
+                        .catch(e => console.error(e.stack))
+                }
+                res.redirect('/listings/myupcomingmeetups');
+            })
+            .catch(e => console.error(e.stack))
+    }
+})
 
 // Edit virtual listing
 router.post('/editvirtual', (req, res) =>{

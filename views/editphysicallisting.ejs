@@ -88,7 +88,16 @@
     <div class="col-md-10 m-auto">
         <div class="card card-body">
             <% include ./partials/messages %>
-            <form action="/listings/createphysical" method="POST">
+            <form action="/listings/updatephysical" method="POST">
+                <div class="form-group col-md-6" type="hidden">
+                    <input
+                            type="hidden"
+                            id="id"
+                            name="id"
+                            class="form-control"
+                            value="<%= listing.id %>"
+                    />
+                </div>
                 <div class="form-row">
                     <div class="form-group col-md-6" >
                         <label for="listingname">Listing Name</label>
