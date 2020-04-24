@@ -1,26 +1,4 @@
-<!-- <ul class="nav nav-tabs mt-1">
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/dashboard">Dashboard</a>
-	</li>
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
-	</li>
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
-	</li>
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
-	</li>
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/users/settings">Settings</a>
-	</li>
-	<li class="nav-item mr-2">
-		<a class="nav-link" href="/users/logout">Logout</a>
-	</li>
-</ul> -->
-
 <div class="container my-4">
-
 
   <!--Navbar-->
   <nav class="navbar navbar-expand-lg navbar-dark primary-color">
@@ -84,8 +62,10 @@
 
 
 <h1 class="mt-4">CineMeet</h1>
-<p class="lead mb-3">My friends list.</p>
+
+<div class="text-center mt-4"> <b>**Add a friend to let them see your private listings, to see other user's private listings you must be on their friends list.**</b></div>
 <h1 class="text-center mt-4">My Friends</h1>
+
 <div class="row mt-4">
 	<div class="col-md-6 m-auto text-center">
 		<% include ./partials/messages %>
@@ -115,5 +95,21 @@
 			/>
 		</div>
 		<button type="submit" class="btn btn-primary btn-block mt-4">Add Friend</button>
+	</form>
+</div>
+
+<div class="col-md-6 m-auto text-center">
+	<form action="/users/addfriend" method="POST"> <!-- CHANGE ACTION TO REMOVE THE FRIEND -->
+		<div class="form-group">
+			<label for="friend" class="mt-4">Friend's Username</label>
+			<input
+					type="text"
+					id="friend"
+					name="friend"
+					class="form-control"
+					placeholder="Enter username"
+			/>
+		</div>
+		<button type="submit" class="btn btn-danger btn-block mt-4">Remove Friend</button>
 	</form>
 </div>

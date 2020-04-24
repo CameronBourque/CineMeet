@@ -11,4 +11,16 @@ router.get('/dashboard', ensureAuthenticated, (req, res) =>
         name: req.user.firstName
     }));
 
+// Dashboard - view listings
+router.get('/viewlistings', ensureAuthenticated, (req, res) =>
+    res.render('viewlistingdashboard', {
+        name: req.user.firstName
+    }));
+
+// Dashboard - create listings
+router.get('/createlistings', ensureAuthenticated, (req, res) =>
+    res.render('createlistingdashboard', {
+        name: req.user.firstName
+    }));
+
 module.exports = router;
