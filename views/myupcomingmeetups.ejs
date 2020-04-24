@@ -109,6 +109,7 @@
                 <% if(listings[i].owner !== owner){ %>
                     <form action="/listings/leave" method="POST">
                         <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <input type="hidden" name="src" value="myupcomingmeetups">
                         <button type="submit" class="btn btn-primary btn-block">Leave Meetup</button>
                     </form>
                 <% } else { %>

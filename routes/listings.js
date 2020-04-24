@@ -71,7 +71,28 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
             res.render('viewphysicallisting', {listings: res, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewphysicallisting', {listings: rsp, owner: req.user.userName});
+            renderer();
+            async function getMembership(){
+                let ret = await Promise.all(results.rows.map(async (listing) => {
+                    const stmt2 = ["SELECT * from \"ListingParticipants\" where \"userName\"='", req.user.userName ,"' and \"listingID\" = any (SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                    let temp = false;
+                    await pool.query(stmt2.join(''))
+                        .then(res => {
+                            if(res.rows.length !== 0){
+                                temp = true;
+                            }
+                        })
+                        .catch(err => {
+                            throw err;
+                        });
+                    return temp;
+                })).catch(err => {throw err;});
+                return ret;
+            }
+            async function renderer() {
+                const isApartOf = await getMembership();
+                res.render('viewphysicallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName});
+            }
         }
     });
 });
@@ -93,7 +114,28 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
             res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
+            renderer();
+            async function getMembership(){
+                let ret = await Promise.all(results.rows.map(async (listing) => {
+                    const stmt2 = ["SELECT * from \"ListingParticipants\" where \"userName\"='", req.user.userName ,"' and \"listingID\" = any (SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                    let temp = false;
+                    await pool.query(stmt2.join(''))
+                        .then(res => {
+                            if(res.rows.length !== 0){
+                                temp = true;
+                            }
+                        })
+                        .catch(err => {
+                            throw err;
+                        });
+                    return temp;
+                })).catch(err => {throw err;});
+                return ret;
+            }
+            async function renderer() {
+                const isApartOf = await getMembership();
+                res.render('viewvirtuallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName});
+            }
         }
     });
 });
@@ -300,7 +342,8 @@ router.post('/joinphysical', (req, res) => {
 
 // Leave listing
 router.post('/leave', (req, res) => {
-    let { id } = req.body;
+    let { id, src } = req.body;
+    console.log(src);
 
     const userName = req.user.userName;
 
@@ -317,12 +360,12 @@ router.post('/leave', (req, res) => {
                     .query(qry)
                     .then(() => {
                         req.flash('success_msg', 'You have successfully left the meetup.');
-                        res.redirect('/listings/myupcomingmeetups')
+                        res.redirect('/listings/' + src);
                     })
                     .catch(e => console.error(e.stack))
             } else {
                 req.flash('error_msg', 'You may not leave your own meetup.');
-                res.redirect('/listings/myupcomingmeetups')
+                res.redirect('/listings/' + src);
             }
         })
         .catch(e => console.error(e.stack))
