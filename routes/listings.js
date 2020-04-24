@@ -5,13 +5,20 @@ const { pool } = require('../config/database');
 const { ensureAuthenticated } = require('../config/auth');
 const { getClient } = require('../discord/outbound');
 
-router.get('/createphysical', ensureAuthenticated, (req, res) =>
-    res.render('createphysicallisting', {
-    }));
+router.get('/createphysical', ensureAuthenticated, (req, res) => {
+    const notifications = [];
+    notifications.push({message: "Physical listings are meetups that take place at a physically. Once you create a meetup, other will coordinate with you."})
+    res.render('createphysicallisting', {notifications});
+});
 
-router.get('/createvirtual', ensureAuthenticated, (req, res) =>
-    res.render('createvirtuallisting', {
-    }));
+router.get('/createvirtual', ensureAuthenticated, (req, res) => {
+    const notifications = [];
+    notifications.push({message: "Virtual listings are meetups that don't" +
+            " take place at a physical location, but online instead. Once you create a meetup, others will coordinate with you" +
+            " on how to watch together virtually."});
+    res.render('createvirtuallisting', {notifications});
+});
+
 
 router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
     const today = moment().format('YYYY-MM-DD');
@@ -54,7 +61,7 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
         .catch(err => {throw err;});
 });
 
-// View current physical listings handler
+// View physical listings handler
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
@@ -91,13 +98,15 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
             }
             async function renderer() {
                 const isApartOf = await getMembership();
-                res.render('viewphysicallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName});
+                const notifications = [];
+                notifications.push({message: "Physical listings are meetups that take place at a physical location. Find a meetup here and then coordinate with that group."})
+                res.render('viewphysicallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName, notifications});
             }
         }
     });
 });
 
-// View current virtual listings handler
+// View virtual listings handler
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
@@ -134,7 +143,11 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
             }
             async function renderer() {
                 const isApartOf = await getMembership();
-                res.render('viewvirtuallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName});
+                const notifications = [];
+                notifications.push({message: "Virtual listings are meetups that don't" +
+                        " take place at a physical location, but online instead. Once you find a meetup, coordinate with your friends" +
+                        " on how to watch together virtually."})
+                res.render('viewvirtuallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName, notifications});
             }
         }
     });

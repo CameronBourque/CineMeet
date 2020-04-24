@@ -8,7 +8,11 @@ const { ensureAuthenticated } = require('../config/auth');
 router.get('/login', (req, res) => res.render('login'));
 
 // Register
-router.get('/register', (req, res) => res.render('register'));
+router.get('/register', (req, res) => {
+    const errors = [];
+    errors.push({message: "Please make sure to fill out every field."})
+    res.render('register', { errors })
+});
 
 // Settings
 router.get('/settings', ensureAuthenticated, function(req, res) {
@@ -107,7 +111,7 @@ router.post('/register', (req, res) => {
 
     // Check required fields
     if (!firstName || !lastName || !userName || !email || !phone || !password || !password2) {
-        errors.push({ message: 'Please fill in all fields.' } );
+        errors.push({ message: 'Please make sure to fill out every field.' } );
     }
 
     // Check if passwords match
