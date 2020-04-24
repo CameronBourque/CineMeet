@@ -100,7 +100,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
 
 // Update virtual listing
 router.post('/updatevirtual', (req, res) => {
-    let { id, listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
+    let { btype, id, listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -115,37 +115,59 @@ router.post('/updatevirtual', (req, res) => {
     if (errors.length > 0) {
         console.log("errors present");
     } else {
-        let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"service\"='", service, "' WHERE \"id\"=", id, ";"];
-        let query = statements.join('');
-        pool
-            .query(query)
-            .then(() => {
-                if (externalpost === 'D' || externalpost === 'DF') {
-                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
-                    const query = statements.join('');
-                    pool
-                        .query(query)
-                        .then(results => {
-                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
-                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
-                                sendDiscord(owner, message, results.rows[0].discordChannel);
-                            } else {
-                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
-                            }
-                            req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                            res.redirect('/dashboard');
-                        })
-                        .catch(e => console.error(e.stack))
+        if(btype === "save") {
+            let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"service\"='", service, "' WHERE \"id\"=", id, ";"];
+            let query = statements.join('');
+            pool
+                .query(query)
+                .then(() => {
+                    if (externalpost === 'D' || externalpost === 'DF') {
+                        const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                        const query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(results => {
+                                if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                    const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    sendDiscord(owner, message, results.rows[0].discordChannel);
+                                } else {
+                                    req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                                }
+                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    }
+                    res.redirect('/listings/myupcomingmeetups');
+                })
+                .catch(e => console.error(e.stack))
+        }
+        else{
+            const statements = ["DELETE FROM \"UserListing\" WHERE \"id\"=", id,";"];
+            const qry = statements.join('');
+            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=,", id, ";"];
+            const qry2 = statements2.join('');
+
+            pool.query(qry, (err, results) => {
+                if(err){
+                    throw err;
                 }
-                res.redirect('/listings/myupcomingmeetups');
-            })
-            .catch(e => console.error(e.stack))
+
+                pool.query(qry2, (err, results) => {
+                    if(err){
+                        throw err;
+                    }
+
+                    res.redirect('/listings/myupcomingmeetups');
+                });
+            });
+        }
     }
 });
 
 // Update physical listing
 router.post('/updatephysical', (req, res) => {
-    let { id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype, externalpost } = req.body;
+    let { btype, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype, externalpost } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -165,32 +187,53 @@ router.post('/updatephysical', (req, res) => {
     if (errors.length > 0) {
         console.log("errors present");
     } else {
-        let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"venueName\"='", venue, "', \"address\"='", address, "', \"address2\"='", address2, "', \"city\"='", city, "', \"state\"='", state,"', \"zipcode\"='", zipcode, "' WHERE \"id\"=", id, ";"];
-        let query = statements.join('');
-        console.log(query);
-        pool
-            .query(query)
-            .then(() => {
-                if (externalpost === 'D' || externalpost === 'DF') {
-                    const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
-                    const query = statements.join('');
-                    pool
-                        .query(query)
-                        .then(results => {
-                            if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
-                                const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Venue: " + venue + "\n" + "Address: " + address + "\n" + "Address2: " + address2 + "\n" + "City: " + city + "\n" + "State: " + state + "\n" + "Zipcode: " + zipcode + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
-                                sendDiscord(owner, message, results.rows[0].discordChannel);
-                            } else {
-                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
-                            }
-                            req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                            res.redirect('/dashboard');
-                        })
-                        .catch(e => console.error(e.stack))
+        if(btype === "save") {
+            let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"venueName\"='", venue, "', \"address\"='", address, "', \"address2\"='", address2, "', \"city\"='", city, "', \"state\"='", state, "', \"zipcode\"='", zipcode, "' WHERE \"id\"=", id, ";"];
+            let query = statements.join('');
+            pool
+                .query(query)
+                .then(() => {
+                    if (externalpost === 'D' || externalpost === 'DF') {
+                        const statements = ["SELECT \"discordChannel\" FROM \"User\" WHERE \"userName\" = '", owner, "';"]
+                        const query = statements.join('');
+                        pool
+                            .query(query)
+                            .then(results => {
+                                if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
+                                    const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Venue: " + venue + "\n" + "Address: " + address + "\n" + "Address2: " + address2 + "\n" + "City: " + city + "\n" + "State: " + state + "\n" + "Zipcode: " + zipcode + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    sendDiscord(owner, message, results.rows[0].discordChannel);
+                                } else {
+                                    req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                                }
+                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                                res.redirect('/dashboard');
+                            })
+                            .catch(e => console.error(e.stack))
+                    }
+                    res.redirect('/listings/myupcomingmeetups');
+                })
+                .catch(e => console.error(e.stack))
+        }
+        else{
+            const statements = ["DELETE FROM \"UserListing\" WHERE \"id\"=", id,";"];
+            const qry = statements.join('');
+            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=", id, ";"];
+            const qry2 = statements2.join('');
+
+            pool.query(qry, (err, results) => {
+                if(err){
+                    throw err;
                 }
-                res.redirect('/listings/myupcomingmeetups');
-            })
-            .catch(e => console.error(e.stack))
+
+                pool.query(qry2, (err, results) => {
+                    if(err){
+                        throw err;
+                    }
+
+                    res.redirect('/listings/myupcomingmeetups');
+                });
+            });
+        }
     }
 })
 
@@ -227,12 +270,6 @@ router.post('/editphysical', (req, res) =>{
 
         res.render('editphysicallisting', {listing: rsp});
     });
-});
-
-// Delete virtual listing
-router.post('/delete', (req, res) =>{
-   //Delete the listing and all associations
-   res.redirect('myupcomingmeetups');
 });
 
 // Join virtual listing
@@ -380,10 +417,10 @@ router.post('/createvirtual', (req, res) => {
                                                 req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
                                             req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                                            res.redirect('/dashboard');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))
                     })
@@ -463,10 +500,10 @@ router.post('/createphysical', (req, res) => {
                                                 req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
                                             req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                                            res.redirect('/dashboard');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))
                     })
