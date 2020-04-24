@@ -142,7 +142,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
 
 // Update virtual listing
 router.post('/updatevirtual', (req, res) => {
-    let { btype, id, listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
+    let { btype, id, listingname, moviename, date, time, service, eventtype } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -163,6 +163,7 @@ router.post('/updatevirtual', (req, res) => {
             pool
                 .query(query)
                 .then(() => {
+                    req.flash('success_msg', 'You have successfully made your changes.');
                     res.redirect('/listings/myupcomingmeetups');
                 })
                 .catch(e => console.error(e.stack))
@@ -182,7 +183,7 @@ router.post('/updatevirtual', (req, res) => {
                     if(err){
                         throw err;
                     }
-
+                    req.flash('success_msg', 'You have successfully deleted your listing.');
                     res.redirect('/listings/myupcomingmeetups');
                 });
             });
@@ -192,7 +193,7 @@ router.post('/updatevirtual', (req, res) => {
 
 // Update physical listing
 router.post('/updatephysical', (req, res) => {
-    let { btype, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype, externalpost } = req.body;
+    let { btype, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -218,6 +219,7 @@ router.post('/updatephysical', (req, res) => {
             pool
                 .query(query)
                 .then(() => {
+                    req.flash('success_msg', 'You have successfully made your changes.');
                     res.redirect('/listings/myupcomingmeetups');
                 })
                 .catch(e => console.error(e.stack))
@@ -237,7 +239,7 @@ router.post('/updatephysical', (req, res) => {
                     if(err){
                         throw err;
                     }
-
+                    req.flash('success_msg', 'You have successfully deleted your listing.');
                     res.redirect('/listings/myupcomingmeetups');
                 });
             });
