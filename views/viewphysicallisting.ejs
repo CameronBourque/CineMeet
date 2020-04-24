@@ -112,6 +112,7 @@
                 <% } else { %>
                     <form action="/listings/editphysical" method="POST">
                         <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <input type="hidden" name="src" value="viewphysical">
                         <button type="submit" class="btn btn-primary btn-block">Edit Meetup</button>
                     </form>
                 <% } %>

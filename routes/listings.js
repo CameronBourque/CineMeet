@@ -142,7 +142,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
 
 // Update virtual listing
 router.post('/updatevirtual', (req, res) => {
-    let { btype, id, listingname, moviename, date, time, service, eventtype } = req.body;
+    let { btype, src, id, listingname, moviename, date, time, service, eventtype } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -164,7 +164,7 @@ router.post('/updatevirtual', (req, res) => {
                 .query(query)
                 .then(() => {
                     req.flash('success_msg', 'You have successfully made your changes.');
-                    res.redirect('/listings/myupcomingmeetups');
+                    res.redirect('/listings/' + src);
                 })
                 .catch(e => console.error(e.stack))
         }
@@ -184,7 +184,7 @@ router.post('/updatevirtual', (req, res) => {
                         throw err;
                     }
                     req.flash('success_msg', 'You have successfully deleted your listing.');
-                    res.redirect('/listings/myupcomingmeetups');
+                    res.redirect('/listings/' + src);
                 });
             });
         }
@@ -193,7 +193,7 @@ router.post('/updatevirtual', (req, res) => {
 
 // Update physical listing
 router.post('/updatephysical', (req, res) => {
-    let { btype, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype } = req.body;
+    let { btype, src, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype } = req.body;
     let errors = [];
 
     // Handle single quotes
@@ -220,7 +220,7 @@ router.post('/updatephysical', (req, res) => {
                 .query(query)
                 .then(() => {
                     req.flash('success_msg', 'You have successfully made your changes.');
-                    res.redirect('/listings/myupcomingmeetups');
+                    res.redirect('/listings/' + src);
                 })
                 .catch(e => console.error(e.stack))
         }
@@ -240,7 +240,7 @@ router.post('/updatephysical', (req, res) => {
                         throw err;
                     }
                     req.flash('success_msg', 'You have successfully deleted your listing.');
-                    res.redirect('/listings/myupcomingmeetups');
+                    res.redirect('/listings/' + src);
                 });
             });
         }
@@ -249,7 +249,7 @@ router.post('/updatephysical', (req, res) => {
 
 // Edit virtual listing
 router.post('/editvirtual', (req, res) =>{
-    let { id } = req.body;
+    let { id, src } = req.body;
 
     const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
     const qry = statement.join('');
@@ -260,13 +260,13 @@ router.post('/editvirtual', (req, res) =>{
         }
 
         let rsp = results.rows[0];
-        res.render('editvirtuallisting', {listing: rsp});
+        res.render('editvirtuallisting', {listing: rsp, src: src});
     });
 });
 
 // Edit physical listing
 router.post('/editphysical', (req, res) =>{
-    let { id } = req.body;
+    let { id, src } = req.body;
 
     const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
     const qry = statement.join('');
@@ -278,7 +278,7 @@ router.post('/editphysical', (req, res) =>{
 
         let rsp = results.rows[0];
 
-        res.render('editphysicallisting', {listing: rsp});
+        res.render('editphysicallisting', {listing: rsp, src: src});
     });
 });
 
