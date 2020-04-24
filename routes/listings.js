@@ -59,7 +59,7 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"') or \"owner\"='", req.user.userName, "'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -81,7 +81,7 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"status\"='public' or (\"status\"='private' and (\"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"') or \"owner\"='", req.user.userName, "'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -128,7 +128,7 @@ router.post('/updatevirtual', (req, res) => {
         else{
             const statements = ["DELETE FROM \"UserListing\" WHERE \"id\"=", id,";"];
             const qry = statements.join('');
-            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=,", id, ";"];
+            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=", id, ";"];
             const qry2 = statements2.join('');
 
             pool.query(qry, (err, results) => {
