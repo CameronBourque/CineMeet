@@ -83,7 +83,7 @@ router.post('/addfriend', (req, res) => {
                     pool
                         .query(query)
                         .then(() => {
-                                req.flash('success_msg', 'You have successfully added ' + friend + '.');
+                                req.flash('success_msg', 'You have successfully added ' + friend + '. This person can now see your private listings.');
                                 res.redirect('/users/friends');
                             }
                         )
