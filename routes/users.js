@@ -136,6 +136,22 @@ router.post('/register', (req, res) => {
             password2
         });
     } else {
+        // this parses phone numbers so that they all format the same way
+        function parsePhone(number){
+            let ret = "";
+            let i = 0;
+            if(number.indexOf("+1") !== 0){
+                ret = "+1";
+                i = 2;
+            }
+            for(; i < number.length; i++){
+                if(number[i] >= '0' && number[i] <= '9'){
+                    ret += number[i];
+                }
+            }
+            return ret;
+        }
+        let phoneN = parsePhone(phone);
         const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "' OR \"userName\" = '", userName, "';"];
         const query = statements.join('');
         pool.query(query, (err, results) => {
@@ -155,7 +171,7 @@ router.post('/register', (req, res) => {
                         password2
                     });
                 } else {
-                    const statements = ["INSERT INTO \"User\" (\"firstName\", \"lastName\", \"userName\", email, phone, password) VALUES (", "\'" + firstName + "\', ", "\'" + lastName + "\', ", "\'" + userName + "\', ", "\'" + email + "\', ", "\'" + phone + "\', ", "\'" + password + "\');"];
+                    const statements = ["INSERT INTO \"User\" (\"firstName\", \"lastName\", \"userName\", email, phone, password) VALUES (", "\'" + firstName + "\', ", "\'" + lastName + "\', ", "\'" + userName + "\', ", "\'" + email + "\', ", "\'" + phoneN + "\', ", "\'" + password + "\');"];
                     const query = statements.join('');
                     pool.query(query, (err, results) => {
                         if (err) {
