@@ -414,12 +414,12 @@ router.post('/createvirtual', (req, res) => {
                                                 const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
                                                 sendDiscord(owner, message, results.rows[0].discordChannel);
                                             } else {
-                                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
+                                                req.flash('error_msg', 'Your listing was posted, but not on Discord. Make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
-                                            req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
                                 res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))
@@ -499,10 +499,10 @@ router.post('/createphysical', (req, res) => {
                                             } else {
                                                 req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
-                                            req.flash('success_msg', 'Your physical meetup has successfully been posted!');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
                                 res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))

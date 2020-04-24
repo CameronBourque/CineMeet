@@ -89,11 +89,11 @@
 <div class="row mt-4">
 	<div class="col-md-6 m-auto text-center">
 		<% include ./partials/messages %>
+        <% if (friends.length > 0) { for (let i = 0; i < friends.length; i++) { %>
 			<div class="card card-body mb-3">
-				<% if (friends.length > 0) { for (let i = 0; i < friends.length; i++) { %>
 				<p><%= friends[i].friend %></p>
-				<% } } %>
 			</div>
+        <% } } %>
 		<% if (friends.length === 0) { %>
 			<div class="card card-body">
 				<h>You currently have no added friends.</h>
@@ -105,7 +105,7 @@
 <div class="col-md-6 m-auto text-center">
 	<form action="/users/addfriend" method="POST">
 		<div class="form-group">
-			<label for="friend">Friend's Username</label>
+			<label for="friend" class="mt-4">Friend's Username</label>
 			<input
 					type="text"
 					id="friend"
