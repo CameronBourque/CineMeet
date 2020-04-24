@@ -140,7 +140,7 @@ router.post('/register', (req, res) => {
         function parsePhone(number){
             let ret = "";
             let i = 0;
-            if(number.indexOf("+1") != 0){
+            if(number.indexOf("+1") !== 0){
                 ret = "+1";
                 i = 2;
             }
