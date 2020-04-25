@@ -7,7 +7,7 @@ const oauth = tumblr.createClient({
     token_secret: 'hMF5nwTO7bxZi69GaSZMHdTTN7jJQFZFUXM5BYyJjiniputT3o'
 });
 
-const BLOG_NAME = 'cinemeet123';
+const BLOG_NAME = 'cinemeet-315.tumblr.com';
 
 function callback() {
     console.log("Listing posted on tumblr blog.");

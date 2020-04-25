@@ -75,31 +75,71 @@ router.post('/addfriend', (req, res) => {
     let { friend } = req.body;
     const userName = req.user.userName;
 
-    let statements = ["SELECT * FROM \"User\" WHERE \"userName\" = '", friend, "';"];
+    let statements = ["SELECT * FROM \"UserFriends\" WHERE owner = '" + userName, "' AND friend = '", friend + "';"];
     let query = statements.join('');
     pool
         .query(query)
         .then(results => {
-            if (results.rows.length > 0) {
-                if (results.rows[0].userName !== userName) {
-                    statements = ["INSERT INTO \"UserFriends\" (owner, friend) VALUES ('", userName, "', '", friend, "');"];
-                    query = statements.join('');
-                    pool
-                        .query(query)
-                        .then(() => {
-                                req.flash('success_msg', 'You have successfully added ' + friend + '. This person can now see your private listings.');
+            if (!(results.rows.length > 0)) {
+                statements = ["SELECT * FROM \"User\" WHERE \"userName\" = '", friend, "';"];
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        if (results.rows.length > 0) {
+                            if (results.rows[0].userName !== userName) {
+                                statements = ["INSERT INTO \"UserFriends\" (owner, friend) VALUES ('", userName, "', '", friend, "');"];
+                                query = statements.join('');
+                                pool
+                                    .query(query)
+                                    .then(() => {
+                                            req.flash('success_msg', 'You have successfully added ' + friend + '. This person can now see your private listings.');
+                                            res.redirect('/users/friends');
+                                        }
+                                    )
+                                    .catch(e => console.error(e.stack))
+                            } else {
+                                req.flash('error_msg', 'You cannot add yourself as a friend.');
                                 res.redirect('/users/friends');
                             }
-                        )
-                        .catch(e => console.error(e.stack))
-                } else {
-                    req.flash('error_msg', 'You cannot add yourself as a friend.');
-                    res.redirect('/users/friends');
-                }
+                        } else {
+                            req.flash('error_msg', 'That user does not exist.');
+                            res.redirect('/users/friends');
+                        }
+                    })
+                    .catch(e => console.error(e.stack))
             } else {
-                req.flash('error_msg', 'That user does not exist.');
+                req.flash('error_msg', 'That user is already your friend.');
                 res.redirect('/users/friends');
             }
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Remove friend
+router.post('/removefriend', (req, res) => {
+    let { friend } = req.body;
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"UserFriends\" WHERE owner = '" + userName, "' AND friend = '", friend + "';"];
+    let query = statements.join('');
+    pool
+        .query(query)
+        .then(results => {
+          if (results.rows.length > 0) {
+              statements = ["DELETE FROM \"UserFriends\" WHERE owner = '", userName, "' AND friend = '", friend + "';"];
+              query = statements.join('');
+              pool
+                  .query(query)
+                  .then(() => {
+                      req.flash('success_msg', friend + ' has been removed from your friends list. This person cannot see your private listings now.');
+                      res.redirect('/users/friends');
+                  })
+                  .catch(e => console.error(e.stack))
+          } else {
+              req.flash('error_msg', friend + ' is currently not on your friends list.');
+              res.redirect('/users/friends');
+          }
         })
         .catch(e => console.error(e.stack))
 });
