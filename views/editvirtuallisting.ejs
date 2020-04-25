@@ -1,0 +1,154 @@
+<div class="container my-4">
+
+  <!--Navbar-->
+  <nav class="navbar navbar-expand-lg navbar-dark primary-color">
+
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="#">CineMeet</a>
+
+    <!-- Collapse button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="basicExampleNav">
+
+      <!-- Links -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/friends">Friends</a>
+        </li>
+        <!-- Dropdown -->
+        <li class="nav-item active dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink1" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false">Create Meetup</a>
+            <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink1">
+              <a class="dropdown-item" href="/listings/createphysical">Physical Meetup</a>
+              <a class="dropdown-item" href="/listings/createvirtual">Virtual Meetup</a>
+            </div>
+          </li>
+
+        <!-- Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">View Meetups</a>
+          <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink2">
+            <a class="dropdown-item" href="/listings/myupcomingmeetups">My Upcoming Meetups</a>
+            <a class="dropdown-item" href="/listings/viewphysical">Physical Meetups</a>
+            <a class="dropdown-item" href="/listings/viewvirtual">Virtual Meetups
+          </a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/settings">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/logout">Logout</a>
+        </li>
+
+      </ul>
+    </div>
+    <!-- Collapsible content -->
+
+  </nav>
+  <!--/.Navbar-->
+
+</div>
+
+<h1 class="mt-4">CineMeet</h1>
+<p class="lead mb-3">Edit virtual movie meetup listing.</p>
+<div class="row mt-5">
+    <div class="col-md-10 m-auto">
+        <div class="card card-body">
+            <% include ./partials/messages %>
+            <form action="/listings/updatevirtual" method="POST">
+                <div class="form-group col-md-6" type="hidden">
+                    <input
+                            type="hidden"
+                            id="id"
+                            name="id"
+                            class="form-control"
+                            value="<%= listing.id %>"
+                    />
+                    <input
+                            type="hidden"
+                            id="src"
+                            name="src"
+                            value="<%= src %>"
+                    />
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6" >
+                        <label for="listingname">Listing Name</label>
+                        <input
+                                type="text"
+                                id="listingname"
+                                name="listingname"
+                                class="form-control"
+                                value="<%= listing.listingName %>"
+                                placeholder="Enter listing name"
+                        />
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="moviename">Movie Name</label>
+                        <input
+                                type="text"
+                                id="moviename"
+                                name="moviename"
+                                class="form-control"
+                                value="<%=listing.movieName%>"
+                                placeholder="Enter movie name"
+                        />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6" >
+                        <label for="date">Date</label>
+                        <input
+                                type="date"
+                                id="date"
+                                name="date"
+                                class="form-control"
+                                value="<%=listing.date%>"
+                                placeholder="Enter date"
+                        />
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="time">Time</label>
+                        <input
+                                type="time"
+                                id="time"
+                                name="time"
+                                class="form-control"
+                                value="<%=listing.time%>"
+                                placeholder="Enter time"
+                        />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="service">Streaming Service</label>
+                    <select id="service" name="service" class="form-control">
+                        <option value="Netflix" <%if(listing.service === "Netflix") {%>selected="true"<%}%>>Netflix</option>
+                        <option value="Hulu" <%if(listing.service === "Hulu") {%>selected="true"<%}%>>Hulu</option>
+                        <option value="Disney Plus" <%if(listing.service === "Disney Plus") {%>selected="true"<%}%>>Disney Plus</option>
+                        <option value="Amazon Prime" <%if(listing.service === "Amazon Prime" || listing.service === "Amazon") {%>selected="true"<%}%>>Amazon Prime</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="eventtype">Event Type</label>
+                    <select id="eventtype" name="eventtype" class="form-control">
+                        <option value="private" <%if(listing.status === "private") {%>selected="true"<%}%>>Private</option>
+                        <option value="public" <%if(listing.status === "public") {%>selected="true"<%}%>>Public</option>
+                    </select>
+                </div>
+                <button type="submit" name="btype" value="save" class="btn btn-primary btn-block">Save Listing</button>
+                <button type="submit" name="btype" value="delete" class="btn btn-primary btn-block">Delete Listing</button>
+            </form>
+        </div>
+    </div>
+</div>

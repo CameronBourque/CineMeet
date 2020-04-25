@@ -1,23 +1,65 @@
-<ul class="nav nav-tabs mt-1">
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/dashboard">Dashboard</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/users/settings">Settings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/users/logout">Logout</a>
-    </li>
-</ul>
+<div class="container my-4">
+
+  <!--Navbar-->
+  <nav class="navbar navbar-expand-lg navbar-dark primary-color">
+
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="#">CineMeet</a>
+
+    <!-- Collapse button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="basicExampleNav">
+
+      <!-- Links -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/friends">Friends</a>
+        </li>
+        <!-- Dropdown -->
+        <li class="nav-item active dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink1" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false">Create Meetup</a>
+            <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink1">
+              <a class="dropdown-item" href="/listings/createphysical">Physical Meetup</a>
+              <a class="dropdown-item" href="/listings/createvirtual">Virtual Meetup</a>
+            </div>
+          </li>
+
+        <!-- Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">View Meetups</a>
+          <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink2">
+            <a class="dropdown-item" href="/listings/myupcomingmeetups">My Upcoming Meetups</a>
+            <a class="dropdown-item" href="/listings/viewphysical">Physical Meetups</a>
+            <a class="dropdown-item" href="/listings/viewvirtual">Virtual Meetups
+          </a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/settings">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/logout">Logout</a>
+        </li>
+
+      </ul>
+    </div>
+    <!-- Collapsible content -->
+
+  </nav>
+  <!--/.Navbar-->
+
+</div>
+
 <h1 class="mt-4">CineMeet</h1>
 <p class="lead mb-3">Create a physical movie meetup listing.</p>
 <div class="row mt-5">
@@ -191,8 +233,8 @@
                         <select id="externalpost" name="externalpost" class="form-control">
                             <option value="N">N/A</option>
                             <option value="D">Discord</option>
-                            <option value="F">Facebook</option>
-                            <option value="DF">Discord & Facebook</option>
+                            <option value="F">Tumblr CineMeet Blog</option>
+                            <option value="DF">Discord & Tumblr CineMeet Blog</option>
                         </select>
                     </div>
                 </div>

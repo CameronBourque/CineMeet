@@ -1,0 +1,14 @@
+<h1 class="mt-4">CineMeet - Welcome <%= name %>!</h1>
+<p class="lead mb-3">CineMeet dashboard.</p>
+<div class="row mt-5">
+    <div class="col-md-6 m-auto">
+        <% include ./partials/messages %>
+        <div class="card card-body text-center">
+            <img class="mx-auto mb-3" src="cm.png">
+            <a href="/listings/viewphysical" class="btn btn-secondary btn-block mb-1">View Physical Meetups</a>
+            <a href="/listings/viewvirtual" class="btn btn-secondary btn-block mb-1">View Virtual Meetups</a>
+            <a href="/listings/myupcomingmeetups" class="btn btn-secondary btn-block mb-1">My Upcoming Meetups</a>
+            <a href="/dashboard" class="btn btn-primary btn-block">Go Back</a>
+        </div>
+    </div>
+</div>

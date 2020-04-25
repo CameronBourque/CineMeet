@@ -1,23 +1,66 @@
-<ul class="nav nav-tabs mt-1">
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/dashboard">Dashboard</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/viewphysical">View Physical Listings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/viewvirtual">View Virtual Listings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/users/settings">Settings</a>
-    </li>
-    <li class="nav-item mr-2">
-        <a class="nav-link" href="/users/logout">Logout</a>
-    </li>
-</ul>
+<div class="container my-4">
+
+
+  <!--Navbar-->
+  <nav class="navbar navbar-expand-lg navbar-dark primary-color">
+
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="#">CineMeet</a>
+
+    <!-- Collapse button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="basicExampleNav">
+
+      <!-- Links -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/friends">Friends</a>
+        </li>
+        <!-- Dropdown -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink1" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false">Create Meetup</a>
+            <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink1">
+              <a class="dropdown-item" href="/listings/createphysical">Physical Meetup</a>
+              <a class="dropdown-item" href="/listings/createvirtual">Virtual Meetup</a>
+            </div>
+          </li>
+
+        <!-- Dropdown -->
+        <li class="nav-item active dropdown">
+          <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">View Meetups</a>
+          <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink2">
+            <a class="dropdown-item" href="/listings/myupcomingmeetups">My Upcoming Meetups</a>
+            <a class="dropdown-item" href="/listings/viewphysical">Physical Meetups</a>
+            <a class="dropdown-item" href="/listings/viewvirtual">Virtual Meetups
+          </a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/settings">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/users/logout">Logout</a>
+        </li>
+
+      </ul>
+    </div>
+    <!-- Collapsible content -->
+
+  </nav>
+  <!--/.Navbar-->
+
+</div>
+
 <h1 class="mt-4">CineMeet</h1>
 <p class="lead mb-3">Physical movie meetup listings.</p>
 <div class="row mt-5">
@@ -33,10 +76,24 @@
                 <p>Location: <%= listings[i].address %><%= listings[i].address2 == null ? '' : listings[i].address2 + ' ' %>, <%= listings[i].city %>, <%= listings[i].state %>, <%= listings[i].zipcode %></p>
                 <p>Status: <%= listings[i].status %></p>
                 <% if(listings[i].owner !== owner) { %>
-                <form action="/listings/joinphysical" method="POST">
-                    <input type="hidden" name="id" value="<%= listings[i].id %>">
-                    <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
-                </form>
+                    <% if(!membership[i]) { %>
+                        <form action="/listings/joinphysical" method="POST">
+                            <input type="hidden" name="id" value="<%= listings[i].id %>">
+                            <button type="submit" class="btn btn-primary btn-block">Join Meetup</button>
+                        </form>
+                    <% } else { %>
+                        <form action="/listings/leave" method="POST">
+                            <input type="hidden" name="id" value="<%= listings[i].id %>">
+                            <input type="hidden" name="src" value="viewphysical">
+                            <button type="submit" class="btn btn-primary btn-block">Leave Meetup</button>
+                        </form>
+                    <% } %>
+                <% } else { %>
+                    <form action="/listings/editphysical" method="POST">
+                        <input type="hidden" name="id" value="<%= listings[i].id %>">
+                        <input type="hidden" name="src" value="viewphysical">
+                        <button type="submit" class="btn btn-primary btn-block">Edit Meetup</button>
+                    </form>
                 <% } %>
             </div>
         <% }} else{ %>

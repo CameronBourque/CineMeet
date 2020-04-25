@@ -8,7 +8,11 @@ const { ensureAuthenticated } = require('../config/auth');
 router.get('/login', (req, res) => res.render('login'));
 
 // Register
-router.get('/register', (req, res) => res.render('register'));
+router.get('/register', (req, res) => {
+    const errors = [];
+    errors.push({message: "Please make sure to fill out every field."})
+    res.render('register', { errors })
+});
 
 // Settings
 router.get('/settings', ensureAuthenticated, function(req, res) {
@@ -71,31 +75,71 @@ router.post('/addfriend', (req, res) => {
     let { friend } = req.body;
     const userName = req.user.userName;
 
-    let statements = ["SELECT * FROM \"User\" WHERE \"userName\" = '", friend, "';"];
+    let statements = ["SELECT * FROM \"UserFriends\" WHERE owner = '" + userName, "' AND friend = '", friend + "';"];
     let query = statements.join('');
     pool
         .query(query)
         .then(results => {
-            if (results.rows.length > 0) {
-                if (results.rows[0].userName !== userName) {
-                    statements = ["INSERT INTO \"UserFriends\" (owner, friend) VALUES ('", userName, "', '", friend, "');"];
-                    query = statements.join('');
-                    pool
-                        .query(query)
-                        .then(() => {
-                                req.flash('success_msg', 'You have successfully added ' + friend + '.');
+            if (!(results.rows.length > 0)) {
+                statements = ["SELECT * FROM \"User\" WHERE \"userName\" = '", friend, "';"];
+                query = statements.join('');
+                pool
+                    .query(query)
+                    .then(results => {
+                        if (results.rows.length > 0) {
+                            if (results.rows[0].userName !== userName) {
+                                statements = ["INSERT INTO \"UserFriends\" (owner, friend) VALUES ('", userName, "', '", friend, "');"];
+                                query = statements.join('');
+                                pool
+                                    .query(query)
+                                    .then(() => {
+                                            req.flash('success_msg', 'You have successfully added ' + friend + '. This person can now see your private listings.');
+                                            res.redirect('/users/friends');
+                                        }
+                                    )
+                                    .catch(e => console.error(e.stack))
+                            } else {
+                                req.flash('error_msg', 'You cannot add yourself as a friend.');
                                 res.redirect('/users/friends');
                             }
-                        )
-                        .catch(e => console.error(e.stack))
-                } else {
-                    req.flash('error_msg', 'You cannot add yourself as a friend.');
-                    res.redirect('/users/friends');
-                }
+                        } else {
+                            req.flash('error_msg', 'That user does not exist.');
+                            res.redirect('/users/friends');
+                        }
+                    })
+                    .catch(e => console.error(e.stack))
             } else {
-                req.flash('error_msg', 'That user does not exist.');
+                req.flash('error_msg', 'That user is already your friend.');
                 res.redirect('/users/friends');
             }
+        })
+        .catch(e => console.error(e.stack))
+});
+
+// Remove friend
+router.post('/removefriend', (req, res) => {
+    let { friend } = req.body;
+    const userName = req.user.userName;
+
+    let statements = ["SELECT * FROM \"UserFriends\" WHERE owner = '" + userName, "' AND friend = '", friend + "';"];
+    let query = statements.join('');
+    pool
+        .query(query)
+        .then(results => {
+          if (results.rows.length > 0) {
+              statements = ["DELETE FROM \"UserFriends\" WHERE owner = '", userName, "' AND friend = '", friend + "';"];
+              query = statements.join('');
+              pool
+                  .query(query)
+                  .then(() => {
+                      req.flash('success_msg', friend + ' has been removed from your friends list. This person cannot see your private listings now.');
+                      res.redirect('/users/friends');
+                  })
+                  .catch(e => console.error(e.stack))
+          } else {
+              req.flash('error_msg', friend + ' is currently not on your friends list.');
+              res.redirect('/users/friends');
+          }
         })
         .catch(e => console.error(e.stack))
 });
@@ -107,7 +151,7 @@ router.post('/register', (req, res) => {
 
     // Check required fields
     if (!firstName || !lastName || !userName || !email || !phone || !password || !password2) {
-        errors.push({ message: 'Please fill in all fields.' } );
+        errors.push({ message: 'Please make sure to fill out every field.' } );
     }
 
     // Check if passwords match
@@ -132,6 +176,22 @@ router.post('/register', (req, res) => {
             password2
         });
     } else {
+        // this parses phone numbers so that they all format the same way
+        function parsePhone(number){
+            let ret = "";
+            let i = 0;
+            if(number.indexOf("+1") !== 0){
+                ret = "+1";
+                i = 2;
+            }
+            for(; i < number.length; i++){
+                if(number[i] >= '0' && number[i] <= '9'){
+                    ret += number[i];
+                }
+            }
+            return ret;
+        }
+        let phoneN = parsePhone(phone);
         const statements = ["SELECT * FROM \"User\" WHERE email = '", email, "' OR \"userName\" = '", userName, "';"];
         const query = statements.join('');
         pool.query(query, (err, results) => {
@@ -151,7 +211,7 @@ router.post('/register', (req, res) => {
                         password2
                     });
                 } else {
-                    const statements = ["INSERT INTO \"User\" (\"firstName\", \"lastName\", \"userName\", email, phone, password) VALUES (", "\'" + firstName + "\', ", "\'" + lastName + "\', ", "\'" + userName + "\', ", "\'" + email + "\', ", "\'" + phone + "\', ", "\'" + password + "\');"];
+                    const statements = ["INSERT INTO \"User\" (\"firstName\", \"lastName\", \"userName\", email, phone, password) VALUES (", "\'" + firstName + "\', ", "\'" + lastName + "\', ", "\'" + userName + "\', ", "\'" + email + "\', ", "\'" + phoneN + "\', ", "\'" + password + "\');"];
                     const query = statements.join('');
                     pool.query(query, (err, results) => {
                         if (err) {

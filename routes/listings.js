@@ -4,14 +4,26 @@ const router = express.Router();
 const { pool } = require('../config/database');
 const { ensureAuthenticated } = require('../config/auth');
 const { getClient } = require('../discord/outbound');
+const { createTumblrPost } = require('../tumblr/outbound');
 
-router.get('/createphysical', ensureAuthenticated, (req, res) =>
-    res.render('createphysicallisting', {
-    }));
+router.get('/createphysical', ensureAuthenticated, (req, res) => {
+    const notifications = [];
+    const errors = [];
+    notifications.push({message: "Physical listings are meetups that take place at a physically. Once you create a meetup, other will coordinate with you."});
+    errors.push({message: "To post on Discord, make sure you have added the CineMeet bot to your server and that you have specified the channel id in your account settings."});
+    res.render('createphysicallisting', {errors, notifications});
+});
 
-router.get('/createvirtual', ensureAuthenticated, (req, res) =>
-    res.render('createvirtuallisting', {
-    }));
+router.get('/createvirtual', ensureAuthenticated, (req, res) => {
+    const notifications = [];
+    const errors = [];
+    notifications.push({message: "Virtual listings are meetups that don't" +
+            " take place at a physical location, but online instead. Once you create a meetup, others will coordinate with you" +
+            " on how to watch together virtually."});
+    errors.push({message: "To post on Discord, make sure you have added the CineMeet bot to your server and that you have specified the channel id in your account settings."});
+    res.render('createvirtuallisting', {errors, notifications});
+});
+
 
 router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
     const today = moment().format('YYYY-MM-DD');
@@ -41,26 +53,25 @@ router.get('/myupcomingmeetups', ensureAuthenticated, (req, res) =>{
                             });
                         return temp;
                     })).catch(err => {throw err;});
-                    console.log(ret);
                     return ret;
                 }
                 let rsp = results.rows;
                 renderer();
                 async function renderer() {
                     const members = await getMembers();
-                    res.render('myupcomingmeetups', {listings: rsp, participants: members});
+                    res.render('myupcomingmeetups', {listings: rsp, participants: members, owner: req.user.userName});
                 }
             }
         })
         .catch(err => {throw err;});
 });
 
-// View current physical listings handler
+// View physical listings handler
 router.get('/viewphysical', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='physical' and (\"status\"='public' or (\"status\"='private' and \"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"') or \"owner\"='", req.user.userName, "'))" + " and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -72,18 +83,40 @@ router.get('/viewphysical', ensureAuthenticated, function(req, res){
             res.render('viewphysicallisting', {listings: res, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewphysicallisting', {listings: rsp, owner: req.user.userName});
+            renderer();
+            async function getMembership(){
+                let ret = await Promise.all(results.rows.map(async (listing) => {
+                    const stmt2 = ["SELECT * from \"ListingParticipants\" where \"userName\"='", req.user.userName ,"' and \"listingID\" = any (SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                    let temp = false;
+                    await pool.query(stmt2.join(''))
+                        .then(res => {
+                            if(res.rows.length !== 0){
+                                temp = true;
+                            }
+                        })
+                        .catch(err => {
+                            throw err;
+                        });
+                    return temp;
+                })).catch(err => {throw err;});
+                return ret;
+            }
+            async function renderer() {
+                const isApartOf = await getMembership();
+                const notifications = [];
+                notifications.push({message: "Physical listings are meetups that take place at a physical location. Find a meetup here and then coordinate with that group."})
+                res.render('viewphysicallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName, notifications});
+            }
         }
     });
 });
 
-// View current virtual listings handler
+// View virtual listings handler
 router.get('/viewvirtual', ensureAuthenticated, function(req, res){
     const today = moment().format('YYYY-MM-DD');
     const currtime = moment().format('hh:mm');
 
-
-    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
+    const statements = ["SELECT * from \"UserListing\" where \"type\"='virtual' and (\"status\"='public' or (\"status\"='private' and (\"owner\"= any (SELECT \"owner\" from \"UserFriends\" where \"friend\"='", req.user.userName ,"') or \"owner\"='", req.user.userName, "'))) and (\"date\">'", today ,"' or (\"date\"='", today ,"' and \"time\">'", currtime ,"'));"];
     const qry = statements.join('');
 
     pool.query(qry, (err, results) => {
@@ -92,11 +125,178 @@ router.get('/viewvirtual', ensureAuthenticated, function(req, res){
         }
         if (results === null) {
             let rsp = {length: 0};
-            res.render('viewvirtuallisting', {listings: res, owner: req.user.userName});
+            res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
         } else {
             let rsp = results.rows;
-            res.render('viewvirtuallisting', {listings: rsp, owner: req.user.userName});
+            renderer();
+            async function getMembership(){
+                let ret = await Promise.all(results.rows.map(async (listing) => {
+                    const stmt2 = ["SELECT * from \"ListingParticipants\" where \"userName\"='", req.user.userName ,"' and \"listingID\" = any (SELECT \"id\" from \"UserListing\" where \"id\"=", listing.id + ");"];
+                    let temp = false;
+                    await pool.query(stmt2.join(''))
+                        .then(res => {
+                            if(res.rows.length !== 0){
+                                temp = true;
+                            }
+                        })
+                        .catch(err => {
+                            throw err;
+                        });
+                    return temp;
+                })).catch(err => {throw err;});
+                return ret;
+            }
+            async function renderer() {
+                const isApartOf = await getMembership();
+                const notifications = [];
+                notifications.push({message: "Virtual listings are meetups that don't" +
+                        " take place at a physical location, but online instead. Once you find a meetup, coordinate with your friends" +
+                        " on how to watch together virtually."})
+                res.render('viewvirtuallisting', {listings: rsp, membership: isApartOf, owner: req.user.userName, notifications});
+            }
         }
+    });
+});
+
+// Update virtual listing
+router.post('/updatevirtual', (req, res) => {
+    let { btype, src, id, listingname, moviename, date, time, service, eventtype } = req.body;
+    let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+
+    // Check required fields
+    if (!listingname || !moviename || !date || !time || !service || !eventtype) {
+        errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    if (errors.length > 0) {
+        console.log("errors present");
+    } else {
+        if(btype === "save") {
+            let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"service\"='", service, "' WHERE \"id\"=", id, ";"];
+            let query = statements.join('');
+            pool
+                .query(query)
+                .then(() => {
+                    req.flash('success_msg', 'You have successfully made your changes.');
+                    res.redirect('/listings/' + src);
+                })
+                .catch(e => console.error(e.stack))
+        }
+        else{
+            const statements = ["DELETE FROM \"UserListing\" WHERE \"id\"=", id,";"];
+            const qry = statements.join('');
+            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=", id, ";"];
+            const qry2 = statements2.join('');
+
+            pool.query(qry, (err, results) => {
+                if(err){
+                    throw err;
+                }
+
+                pool.query(qry2, (err, results) => {
+                    if(err){
+                        throw err;
+                    }
+                    req.flash('success_msg', 'You have successfully deleted your listing.');
+                    res.redirect('/listings/' + src);
+                });
+            });
+        }
+    }
+});
+
+// Update physical listing
+router.post('/updatephysical', (req, res) => {
+    let { btype, src, id, listingname, moviename, date, time, venue, address, address2, city, state, zipcode, eventtype } = req.body;
+    let errors = [];
+
+    // Handle single quotes
+    listingname = parseSingleQuotes(listingname);
+    moviename = parseSingleQuotes(moviename);
+    venue = parseSingleQuotes(venue);
+    address = parseSingleQuotes(address);
+    address2 = parseSingleQuotes(address2);
+    city = parseSingleQuotes(city);
+    zipcode = parseSingleQuotes(zipcode);
+
+    // Check required fields
+    if (!listingname || !moviename || !date || !time || !venue || !address || !city || !zipcode || !eventtype) {
+        errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    if (errors.length > 0) {
+        console.log("errors present");
+    } else {
+        if(btype === "save") {
+            let statements = ["UPDATE \"UserListing\" SET \"listingName\"='", listingname, "', \"movieName\"='", moviename, "', \"date\"='", date, "', \"time\"='", time, "', \"venueName\"='", venue, "', \"address\"='", address, "', \"address2\"='", address2, "', \"city\"='", city, "', \"state\"='", state, "', \"zipcode\"='", zipcode, "' WHERE \"id\"=", id, ";"];
+            let query = statements.join('');
+            pool
+                .query(query)
+                .then(() => {
+                    req.flash('success_msg', 'You have successfully made your changes.');
+                    res.redirect('/listings/' + src);
+                })
+                .catch(e => console.error(e.stack))
+        }
+        else{
+            const statements = ["DELETE FROM \"UserListing\" WHERE \"id\"=", id,";"];
+            const qry = statements.join('');
+            const statements2 = ["DELETE FROM \"ListingParticipants\" WHERE \"listingID\"=", id, ";"];
+            const qry2 = statements2.join('');
+
+            pool.query(qry, (err, results) => {
+                if(err){
+                    throw err;
+                }
+
+                pool.query(qry2, (err, results) => {
+                    if(err){
+                        throw err;
+                    }
+                    req.flash('success_msg', 'You have successfully deleted your listing.');
+                    res.redirect('/listings/' + src);
+                });
+            });
+        }
+    }
+})
+
+// Edit virtual listing
+router.post('/editvirtual', (req, res) =>{
+    let { id, src } = req.body;
+
+    const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
+    const qry = statement.join('');
+
+    pool.query(qry, (err, results) => {
+        if(err){
+            throw err;
+        }
+
+        let rsp = results.rows[0];
+        res.render('editvirtuallisting', {listing: rsp, src: src});
+    });
+});
+
+// Edit physical listing
+router.post('/editphysical', (req, res) =>{
+    let { id, src } = req.body;
+
+    const statement = ["SELECT * from \"UserListing\" where \"id\"=",id,";"];
+    const qry = statement.join('');
+
+    pool.query(qry, (err, results) => {
+        if(err){
+            throw err;
+        }
+
+        let rsp = results.rows[0];
+
+        res.render('editphysicallisting', {listing: rsp, src: src});
     });
 });
 
@@ -149,12 +349,12 @@ router.post('/joinphysical', (req, res) => {
                     .query(qry)
                     .then(() => {
                         req.flash('success_msg', 'You have successfully joined this meetup.');
-                        res.redirect('/listings/viewvirtual')
+                        res.redirect('/listings/viewphysical')
                     })
                     .catch(e => console.error(e.stack))
             } else {
                 req.flash('error_msg', 'You have already joined this meetup.');
-                res.redirect('/listings/viewvirtual')
+                res.redirect('/listings/viewphysical')
             }
         })
         .catch(e => console.error(e.stack))
@@ -162,7 +362,8 @@ router.post('/joinphysical', (req, res) => {
 
 // Leave listing handler
 router.post('/leave', (req, res) => {
-    let { id } = req.body;
+    let { id, src } = req.body;
+    console.log(src);
 
     const userName = req.user.userName;
 
@@ -179,12 +380,12 @@ router.post('/leave', (req, res) => {
                     .query(qry)
                     .then(() => {
                         req.flash('success_msg', 'You have successfully left the meetup.');
-                        res.redirect('/listings/myupcomingmeetups')
+                        res.redirect('/listings/' + src);
                     })
                     .catch(e => console.error(e.stack))
             } else {
                 req.flash('error_msg', 'You may not leave your own meetup.');
-                res.redirect('/listings/myupcomingmeetups')
+                res.redirect('/listings/' + src);
             }
         })
         .catch(e => console.error(e.stack))
@@ -202,6 +403,12 @@ router.post('/createvirtual', (req, res) => {
     // Check required fields
     if (!listingname || !moviename || !date || !time || !service || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
     }
 
     if (errors.length > 0) {
@@ -241,14 +448,17 @@ router.post('/createvirtual', (req, res) => {
                                             if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
                                                 const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
                                                 sendDiscord(owner, message, results.rows[0].discordChannel);
-                                            } else {
-                                                req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
-                                            req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
-                                            res.redirect('/dashboard');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                if (externalpost === 'F' || externalpost === 'DF') {
+                                    const message = "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    const title = listingname
+                                    createTumblrPost(title, message);
+                                }
+                                req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
+                                res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))
                     })
@@ -266,6 +476,12 @@ router.post('/createphysical', (req, res) => {
     // Check required fields
     if (!listingname || !moviename || !date || !time || !venue || !address || !city || !state || !zipcode || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
     }
 
     // Handle single quotes
@@ -327,11 +543,16 @@ router.post('/createphysical', (req, res) => {
                                             } else {
                                                 req.flash('error_msg', 'Your discord posting was not posted. Please make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
-                                            req.flash('success_msg', 'Your physical meetup has successfully been posted!');
-                                            res.redirect('/dashboard');
                                         })
                                         .catch(e => console.error(e.stack))
                                 }
+                                if (externalpost === 'F' || externalpost === 'DF') {
+                                    const message = "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    const title = listingname
+                                    createTumblrPost(title, message);
+                                }
+                                req.flash('success_msg', 'Your physical meetup has successfully been posted!');
+                                res.redirect('/dashboard');
                             })
                             .catch(e => console.error(e.stack))
                     })
