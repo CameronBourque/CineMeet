@@ -1,7 +1,7 @@
-<div class="container my-4">
+<div class="container my-4" style="font-family:'Calibri'">
 
   <!--Navbar-->
-  <nav class="navbar navbar-expand-lg navbar-dark primary-color">
+  <nav class="navbar navbar-expand-lg navbar-dark primary-color" style = "font-family: Calibri";>
 
     <!-- Navbar brand -->
     <a class="navbar-brand" href="#">CineMeet</a>
@@ -28,8 +28,8 @@
             <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink1" data-toggle="dropdown" aria-haspopup="true"
               aria-expanded="false">Create Meetup</a>
             <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink1">
-              <a class="dropdown-item" href="/listings/createphysical">Create a Physical Meetup</a>
-              <a class="dropdown-item" href="/listings/createvirtual">Create a Virtual Meetup</a>
+              <a class="dropdown-item" href="/listings/createphysical">Physical Meetup</a>
+              <a class="dropdown-item" href="/listings/createvirtual">Virtual Meetup</a>
             </div>
           </li>
 
@@ -38,9 +38,9 @@
           <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true"
             aria-expanded="false">View Meetups</a>
           <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink2">
-            <a class="dropdown-item" href="/listings/myupcomingmeetups">View My Upcoming Meetups</a>
-            <a class="dropdown-item" href="/listings/viewphysical">View All Physical Meetups</a>
-            <a class="dropdown-item" href="/listings/viewvirtual">View All Virtual Meetups
+            <a class="dropdown-item" href="/listings/myupcomingmeetups">My Upcoming Meetups</a>
+            <a class="dropdown-item" href="/listings/viewphysical">Physical Meetups</a>
+            <a class="dropdown-item" href="/listings/viewvirtual">Virtual Meetups
           </a>
           </div>
         </li>
@@ -60,17 +60,14 @@
 
 </div>
 
+<h1 class="mt-4" style = "font-family: Calibri">CineMeet</h1>
+<h1 class="text-center mt-4" style = "font-family: Calibri">My Friends</h1>
 
-<h1 class="mt-4">CineMeet</h1>
-
-<div class="text-center mt-4"> <b>**Add a friend to let them see your private listings, to see other user's private listings you must be on their friends list.**</b></div>
-<h1 class="text-center mt-4">My Friends</h1>
-
-<div class="row mt-4">
-	<div class="col-md-6 m-auto text-center">
-		<% include ./partials/messages %>
+<div class="row mt-4" style="font-family:'Calibri'">
+	<div class="card card-body col-md-6 m-auto text-center">
+        <% include ./partials/messages %>
         <% if (friends.length > 0) { for (let i = 0; i < friends.length; i++) { %>
-			<div class="card card-body mb-3">
+			<div class="">
 				<p><%= friends[i].friend %></p>
 			</div>
         <% } } %>
@@ -82,8 +79,8 @@
 	</div>
 </div>
 
-<div class="col-md-6 m-auto text-center">
-	<form action="/users/addfriend" method="POST">
+<div class="col-md-6 m-auto text-center" style="font-family:'Calibri'">
+	<form method="POST">
 		<div class="form-group">
 			<label for="friend" class="mt-4">Friend's Username</label>
 			<input
@@ -94,22 +91,8 @@
 					placeholder="Enter username"
 			/>
 		</div>
-		<button type="submit" class="btn btn-primary btn-block mt-4">Add Friend</button>
+        <button type="submit" formaction="/users/addfriend" class="btn btn-primary btn-block mt-4">Add Friend</button>
+        <button type="submit" formaction="/users/removefriend" class="btn btn-danger btn-block mt-4">Remove Friend</button>
 	</form>
 </div>
 
-<div class="col-md-6 m-auto text-center">
-	<form action="/users/addfriend" method="POST"> <!-- CHANGE ACTION TO REMOVE THE FRIEND -->
-		<div class="form-group">
-			<label for="friend" class="mt-4">Friend's Username</label>
-			<input
-					type="text"
-					id="friend"
-					name="friend"
-					class="form-control"
-					placeholder="Enter username"
-			/>
-		</div>
-		<button type="submit" class="btn btn-danger btn-block mt-4">Remove Friend</button>
-	</form>
-</div>

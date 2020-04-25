@@ -33,7 +33,7 @@ const identifyUserPhoneNumbers = (callback) => {
 }
 
 const identifyUserListings = (callback) => {
-    const statements = ["select \"userName\", date from \"ListingParticipants\", \"UserListing\" where \"listingID\" = id;"];
+    const statements = ["select \"userName\", date, time from \"ListingParticipants\", \"UserListing\" where \"listingID\" = id;"];
     const query = statements.join('');
     pool.query(query, (err, results) => {
             if (err) {
@@ -42,10 +42,12 @@ const identifyUserListings = (callback) => {
             for (let i = 0; i < results.rows.length; i++) {
                 const userName = results.rows[i].userName;
                 const meetupDate = results.rows[i].date;
+                const time = results.rows[i].time;
+                const datetime = meetupDate + " at " + time + ".";
                 if (userListings.get(userName) === undefined) {
-                    userListings.set(userName, [meetupDate]);
+                    userListings.set(userName, [datetime]);
                 } else if (userListings.get(userName) !== undefined) {
-                    userListings.get(userName).push(meetupDate);
+                    userListings.get(userName).push(datetime);
                 }
             }
             callback();
@@ -64,10 +66,10 @@ const sendSMS = () => {
             .then(results => {
                 if (results.rows[0].twilioService === 'on') {
                     for (let i = 0; i < v.length; i++) {
-                        const listingDate = moment(v[0]);
-                        if (listingDate.diff((todaysDate)) <= reminderThreshold) {
-                            const daysLeft = listingDate.from((todaysDate));
-                            const message = "You have a movie meetup coming up " + daysLeft + " - on " + v[0] + ".";
+                        const listingDate = moment(spliceDateTime(v[i]));
+                        if (listingDate.diff((todaysDate)) <= reminderThreshold && listingDate.diff((todaysDate)) > 0) {
+                            console.log("Text message sent to " + k + ".");
+                            const message = "Just a friendly reminder! You have a movie meetup coming up on " + v[i];
                             client.messages.create({
                                 body: message,
                                 to: toPhoneNumber,
@@ -82,9 +84,16 @@ const sendSMS = () => {
     }
 }
 
+function spliceDateTime(toSplice) {
+    for (let i = 0; i < toSplice.length; i++) {
+        if (toSplice.charAt(i) == ' ') {
+            return toSplice.slice(0, i);
+        }
+    }
+}
 
 const initiateTwilioService = () => {
-    console.log("Twilio service initiated.");
+    console.log("Sending text messages to users.");
     identifyUserPhoneNumbers(identifyUserListings);
 }
 

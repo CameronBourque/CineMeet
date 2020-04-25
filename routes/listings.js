@@ -4,19 +4,24 @@ const router = express.Router();
 const { pool } = require('../config/database');
 const { ensureAuthenticated } = require('../config/auth');
 const { getClient } = require('../discord/outbound');
+const { createTumblrPost } = require('../tumblr/outbound');
 
 router.get('/createphysical', ensureAuthenticated, (req, res) => {
     const notifications = [];
-    notifications.push({message: "Physical listings are meetups that take place at a physically. Once you create a meetup, other will coordinate with you."})
-    res.render('createphysicallisting', {notifications});
+    const errors = [];
+    notifications.push({message: "Physical listings are meetups that take place at a physically. Once you create a meetup, other will coordinate with you."});
+    errors.push({message: "To post on Discord, make sure you have added the CineMeet bot to your server and that you have specified the channel id in your account settings."});
+    res.render('createphysicallisting', {errors, notifications});
 });
 
 router.get('/createvirtual', ensureAuthenticated, (req, res) => {
     const notifications = [];
+    const errors = [];
     notifications.push({message: "Virtual listings are meetups that don't" +
             " take place at a physical location, but online instead. Once you create a meetup, others will coordinate with you" +
             " on how to watch together virtually."});
-    res.render('createvirtuallisting', {notifications});
+    errors.push({message: "To post on Discord, make sure you have added the CineMeet bot to your server and that you have specified the channel id in your account settings."});
+    res.render('createvirtuallisting', {errors, notifications});
 });
 
 
@@ -400,6 +405,12 @@ router.post('/createvirtual', (req, res) => {
         errors.push({ message: 'Please fill in all fields.' } );
     }
 
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
+    }
+
     if (errors.length > 0) {
         res.render('createvirtuallisting', {
             errors,
@@ -437,11 +448,14 @@ router.post('/createvirtual', (req, res) => {
                                             if (results.rows[0].discordChannel !== '' && results.rows[0].discordChannel !== null) {
                                                 const message = "Listing Name: " + listingname + "\n" + "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
                                                 sendDiscord(owner, message, results.rows[0].discordChannel);
-                                            } else {
-                                                req.flash('error_msg', 'Your listing was posted, but not on Discord. Make sure you have added the CineMeet bot to your discord server and that you have entered the channel id in settings.');
                                             }
                                         })
                                         .catch(e => console.error(e.stack))
+                                }
+                                if (externalpost === 'F' || externalpost === 'DF') {
+                                    const message = "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    const title = listingname
+                                    createTumblrPost(title, message);
                                 }
                                 req.flash('success_msg', 'Your virtual meetup has successfully been posted!');
                                 res.redirect('/dashboard');
@@ -462,6 +476,12 @@ router.post('/createphysical', (req, res) => {
     // Check required fields
     if (!listingname || !moviename || !date || !time || !venue || !address || !city || !state || !zipcode || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
+    }
+
+    const todaysDate = moment(moment().format("YYYY-MM-DD"));
+    const listingDate = moment(date);
+    if (!(listingDate.diff((todaysDate)) > 0)) {
+        errors.push({ message: 'Please make sure the date is in the future.' });
     }
 
     // Handle single quotes
@@ -525,6 +545,11 @@ router.post('/createphysical', (req, res) => {
                                             }
                                         })
                                         .catch(e => console.error(e.stack))
+                                }
+                                if (externalpost === 'F' || externalpost === 'DF') {
+                                    const message = "Movie Name: " + moviename + "\n" + "Date: " + date + "\n" + "Time: " + time + "\n" + "Service: " + service + "\n" + "Event Type: " + eventtype + "\n" + "Owner: " + owner;
+                                    const title = listingname
+                                    createTumblrPost(title, message);
                                 }
                                 req.flash('success_msg', 'Your physical meetup has successfully been posted!');
                                 res.redirect('/dashboard');
