@@ -69,7 +69,7 @@ app.listen(port, console.log(`Server started on port ${port}`));
 // Cron job for every 3 hours
 if (TWILIO_SERVICE) {
     console.log("Twilio service initiated.")
-    cron.schedule("0 0 */3 * * *", () => {
+    cron.schedule("0 0 0 * * *", () => {
         initiateTwilioService();
     });
 }

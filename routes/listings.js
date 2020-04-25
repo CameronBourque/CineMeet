@@ -396,10 +396,6 @@ router.post('/createvirtual', (req, res) => {
     let { listingname, moviename, date, time, service, eventtype, externalpost } = req.body;
     let errors = [];
 
-    // Handle single quotes
-    listingname = parseSingleQuotes(listingname);
-    moviename = parseSingleQuotes(moviename);
-
     // Check required fields
     if (!listingname || !moviename || !date || !time || !service || !eventtype) {
         errors.push({ message: 'Please fill in all fields.' } );
@@ -412,6 +408,7 @@ router.post('/createvirtual', (req, res) => {
     }
 
     if (errors.length > 0) {
+        console.log("Aasdasd")
         res.render('createvirtuallisting', {
             errors,
             listingname,
@@ -423,6 +420,8 @@ router.post('/createvirtual', (req, res) => {
             externalpost
         });
     } else {
+        listingname = parseSingleQuotes(listingname);
+        moviename = parseSingleQuotes(moviename);
         const owner = req.user.userName;
         let statements = ["INSERT INTO \"UserListing\" (\"listingName\", \"movieName\", date, time, service, status, type, owner) VALUES (\'", listingname + "\', '", moviename + "', '", date + "', '", time + "', '", service + "', '", eventtype + "', '", "virtual" + "', '", owner + "');"];
         let query = statements.join('');
@@ -484,15 +483,6 @@ router.post('/createphysical', (req, res) => {
         errors.push({ message: 'Please make sure the date is in the future.' });
     }
 
-    // Handle single quotes
-    listingname = parseSingleQuotes(listingname);
-    moviename = parseSingleQuotes(moviename);
-    venue = parseSingleQuotes(venue);
-    address = parseSingleQuotes(address);
-    address2 = parseSingleQuotes(address2);
-    city = parseSingleQuotes(city);
-    zipcode = parseSingleQuotes(zipcode);
-
     if (errors.length > 0) {
         res.render('createphysicallisting', {
             errors,
@@ -509,6 +499,13 @@ router.post('/createphysical', (req, res) => {
             eventtype
         });
     } else {
+        listingname = parseSingleQuotes(listingname);
+        moviename = parseSingleQuotes(moviename);
+        venue = parseSingleQuotes(venue);
+        address = parseSingleQuotes(address);
+        address2 = parseSingleQuotes(address2);
+        city = parseSingleQuotes(city);
+        zipcode = parseSingleQuotes(zipcode);
         const owner = req.user.userName;
         let statements = null;
         if (address2 === '') {
