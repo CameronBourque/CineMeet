@@ -178,10 +178,9 @@ router.post('/register', (req, res) => {
     } else {
         // this parses phone numbers so that they all format the same way
         function parsePhone(number){
-            let ret = "";
+            let ret = "+1";
             let i = 0;
             if(number.indexOf("+1") === 0){
-                ret = "+1";
                 i = 2;
             }
             for(; i < number.length; i++){
