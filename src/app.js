@@ -13,7 +13,7 @@ const { initiateDiscordService } = require ('../discord/outbound');
 */
 
 // API configuration
-const TWILIO_SERVICE = true;
+const TWILIO_SERVICE = false;
 
 // Discord configuration
 initiateDiscordService();
